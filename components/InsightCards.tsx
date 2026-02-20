@@ -59,7 +59,7 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
 
   return (
     <Tabs defaultValue="summary">
-      <TabsList className="flex w-full flex-wrap justify-start gap-1">
+      <TabsList className="flex w-full flex-wrap justify-start gap-1 border-emerald-200 bg-emerald-50/70 text-emerald-700">
         <TabsTrigger value="themes">Temas</TabsTrigger>
         <TabsTrigger value="questions">Perguntas</TabsTrigger>
         <TabsTrigger value="hypotheses">Hipóteses</TabsTrigger>
@@ -70,10 +70,10 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
 
       <TabsContent value="summary">
         <Card>
-          <CardHeader>
-            <CardTitle>Resumo</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Resumo</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
               {pkg.summary.bullets.map((b, i) => (
                 <li key={i}>{b}</li>
@@ -86,16 +86,16 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
       <TabsContent value="themes">
         {pkg.themes.length === 0 ? (
           <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">Sem temas.</CardContent>
+            <CardContent className="p-4 text-sm text-muted-foreground">Sem temas.</CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {pkg.themes.map((t, i) => (
               <Card key={i}>
-                <CardHeader>
-                  <CardTitle>{t.title}</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{t.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="text-sm text-foreground">{t.description}</div>
                   <EvidenceList evidence={t.evidence} />
                 </CardContent>
@@ -108,16 +108,16 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
       <TabsContent value="questions">
         {pkg.questions.length === 0 ? (
           <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">Sem perguntas.</CardContent>
+            <CardContent className="p-4 text-sm text-muted-foreground">Sem perguntas.</CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {pkg.questions.map((q, i) => (
               <Card key={i}>
-                <CardHeader>
-                  <CardTitle>{q.question}</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{q.question}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="text-sm text-foreground">{q.rationale}</div>
                   <EvidenceList evidence={q.evidence} />
                 </CardContent>
@@ -130,21 +130,21 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
       <TabsContent value="hypotheses">
         {pkg.hypotheses.length === 0 ? (
           <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">Sem hipóteses.</CardContent>
+            <CardContent className="p-4 text-sm text-muted-foreground">Sem hipóteses.</CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {pkg.hypotheses.map((h, i) => (
               <Card key={i}>
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-sm">{h.hypothesis}</CardTitle>
+                    <CardTitle className="text-base">{h.hypothesis}</CardTitle>
                     <div className="text-xs text-muted-foreground/80">
                       confiança: {confidenceLabel(h.confidence)}
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <EvidenceList evidence={h.evidence} />
                 </CardContent>
               </Card>
@@ -156,21 +156,21 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
       <TabsContent value="risks">
         {pkg.risks.length === 0 ? (
           <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">Sem riscos.</CardContent>
+            <CardContent className="p-4 text-sm text-muted-foreground">Sem riscos.</CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {pkg.risks.map((r, i) => (
               <Card key={i}>
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-sm">{r.type}</CardTitle>
+                    <CardTitle className="text-base">{r.type}</CardTitle>
                     <div className="text-xs text-muted-foreground/80">
                       urgência: {urgencyLabel(r.urgency)}
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="text-sm text-foreground">{r.note}</div>
                   <EvidenceList evidence={r.evidence} />
                 </CardContent>
@@ -183,16 +183,16 @@ export function InsightCards({ pkg }: { pkg: InsightsPackage | null }) {
       <TabsContent value="next_steps">
         {pkg.next_steps.length === 0 ? (
           <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">Sem próximos passos.</CardContent>
+            <CardContent className="p-4 text-sm text-muted-foreground">Sem próximos passos.</CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {pkg.next_steps.map((s, i) => (
               <Card key={i}>
-                <CardHeader>
-                  <CardTitle className="text-sm">{s.step}</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{s.step}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="text-sm text-foreground">{s.rationale}</div>
                 </CardContent>
               </Card>

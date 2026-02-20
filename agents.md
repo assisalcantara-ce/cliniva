@@ -25,6 +25,9 @@ Build a therapy session copilot web app (Next.js + Supabase) that helps a therap
 - Follow TypeScript strictness. Avoid `any`.
 - Validate API inputs using Zod.
 - Keep all secrets server-side. Never expose service keys in client code.
+- Qualquer mudanca no schema -> atualizar Zod + UI + docs/ai-contract.md.
+- Qualquer mudanca no modelo -> testar /api/diag/openai e geracao completa.
+- Sempre rodar smoke test apos alteracoes na IA.
 
 ## App Boundaries (MVP)
 - **v1**: Text notes/transcripts only (no live audio).

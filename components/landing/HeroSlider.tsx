@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const slides = [
@@ -9,7 +10,7 @@ const slides = [
     description:
       "Integre inteligência artificial ao seu atendimento com foco em acolhimento, clareza e continuidade.",
     image: "/img/slide1.png",
-    cta: "Quero conhecer",
+    cta: "Assinar agora",
   },
   {
     eyebrow: "Copiloto profissional",
@@ -17,7 +18,7 @@ const slides = [
     description:
       "Receba temas, perguntas e hipóteses para conduzir conversas mais profundas.",
     image: "/img/slide2.png",
-    cta: "Ver como funciona",
+    cta: "Assinar agora",
   },
   {
     eyebrow: "Integração com IA",
@@ -94,15 +95,15 @@ export default function HeroSlider() {
               </h1>
               <p className="text-base text-slate-600">{slide.description}</p>
               <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
+                <Link
+                  href="/planos"
                   className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30"
-                  aria-label="CTA em breve"
+                  aria-label="Ir para planos"
                 >
                   {slide.cta}
-                </button>
+                </Link>
                 <span className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">
-                  Sem redirecionamento
+                  A Tecnologia a seu favor!
                 </span>
               </div>
             </div>

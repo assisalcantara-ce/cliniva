@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getOrCreateTherapistId } from "@/lib/db/therapist";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { encryptOpenAiKey } from "@/lib/ai/openaiKey";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,8 @@ const settingsSchema = z.object({
   therapist_zip_code: z.string().trim().optional(),
   bio: z.string().trim().optional(),
   photo_url: z.string().trim().optional(),
+  openai_api_key: z.string().trim().optional(),
+  remove_openai_key: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -49,7 +52,13 @@ export async function GET() {
       );
     }
 
-    const therapist = therapistResult.data;
+    const therapist = therapistResult.data as {
+      display_name?: string | null;
+      openai_api_key?: string | null;
+      openai_api_key_encrypted?: string | null;
+      openai_api_key_last4?: string | null;
+      openai_key_added_at?: string | null;
+    };
 
     // Mock settings - in production this would fetch from actual tables
     const settings = {
@@ -75,7 +84,14 @@ export async function GET() {
       photo_url: "",
     };
 
-    return NextResponse.json({ settings }, { status: 200 });
+    const openaiKey = therapist.openai_api_key_encrypted ?? therapist.openai_api_key ?? "";
+    const ai = {
+      has_key: Boolean(openaiKey),
+      key_last4: therapist.openai_api_key_last4 ?? (openaiKey ? openaiKey.slice(-4) : ""),
+      key_added_at: therapist.openai_key_added_at ?? undefined,
+    };
+
+    return NextResponse.json({ settings, ai }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -100,11 +116,26 @@ export async function POST(req: NextRequest) {
     const supabase = createSupabaseAdminClient();
 
     // Update therapist record
+    const therapistUpdate: Record<string, unknown> = {
+      display_name: parsed.data.display_name,
+    };
+    if (parsed.data.openai_api_key && parsed.data.openai_api_key.trim().length) {
+      const rawKey = parsed.data.openai_api_key.trim();
+      therapistUpdate.openai_api_key_encrypted = encryptOpenAiKey(rawKey);
+      therapistUpdate.openai_api_key_last4 = rawKey.slice(-4);
+      therapistUpdate.openai_key_added_at = new Date().toISOString();
+      therapistUpdate.openai_api_key = null;
+    }
+    if (parsed.data.remove_openai_key) {
+      therapistUpdate.openai_api_key_encrypted = null;
+      therapistUpdate.openai_api_key_last4 = null;
+      therapistUpdate.openai_key_added_at = null;
+      therapistUpdate.openai_api_key = null;
+    }
+
     const updateResult = await supabase
       .from("therapists")
-      .update({
-        display_name: parsed.data.display_name,
-      })
+      .update(therapistUpdate)
       .eq("id", therapistId)
       .select()
       .single();

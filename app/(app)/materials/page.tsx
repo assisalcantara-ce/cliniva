@@ -111,75 +111,104 @@ export default function MaterialsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="patients-page space-y-6">
+      <div className="page-header">
+        <div className="title-row">
+          <svg
+            className="title-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style={{ width: "40px", height: "40px" }}
+          >
+            <rect x="3" y="4" width="18" height="16" rx="2" stroke="#0f766e" strokeWidth="2" />
+            <path d="M7 9h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M7 13h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M7 17h6" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <h1 className="page-title" style={{ fontSize: "32px" }}>
+            Materiais
+          </h1>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Centralize documentos e anotações para apoiar consultas com IA.
+        </p>
+      </div>
+
       {error ? (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="admin-card border-red-200 bg-red-50">
           <CardContent className="p-5 text-sm text-red-800">{error}</CardContent>
         </Card>
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Adicionar (texto)</CardTitle>
+        <Card className="admin-card">
+          <CardHeader className="admin-card__header">
+            <CardTitle className="admin-card__title">Adicionar (texto)</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="admin-card__content">
             <form onSubmit={createMaterial} className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-foreground">Título</label>
+              <div className="field">
+                <label className="label">Titulo</label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex.: Anotações - Primeira entrevista"
-                  className="mt-1"
+                  placeholder="Ex.: Anotacoes - Primeira entrevista"
+                  className="control"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Texto</label>
+              <div className="field">
+                <label className="label">Texto</label>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background control"
                   rows={10}
-                  placeholder="Cole o conteúdo aqui..."
+                  placeholder="Cole o conteudo aqui..."
                 />
               </div>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Salvando..." : "Adicionar material (texto)"}
+              <Button type="submit" disabled={isSaving} className="bg-teal-600 hover:bg-teal-700 text-white">
+                {isSaving ? "Salvando..." : "Adicionar material"}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Envio (PDF/DOCX)</CardTitle>
+        <Card className="admin-card">
+          <CardHeader className="admin-card__header">
+            <CardTitle className="admin-card__title">Envio (PDF/DOCX)</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="admin-card__content">
             <form onSubmit={uploadMaterial} className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-foreground">Título (opcional)</label>
+              <div className="field">
+                <label className="label">Titulo (opcional)</label>
                 <Input
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Se vazio, usa o nome do arquivo"
-                  className="mt-1"
+                  className="control"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Arquivo</label>
+              <div className="field">
+                <label className="label">Arquivo</label>
                 <input
                   type="file"
                   accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="mt-1 w-full text-sm"
+                  className="control w-full text-sm"
                 />
-                <div className="mt-1 text-xs text-muted-foreground/80">Máx.: 15MB</div>
+                <div className="mt-1 text-xs text-muted-foreground/80">Max.: 15MB</div>
+              </div>
+
+              <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                O arquivo sera enviado e indexado para busca com IA.
               </div>
 
               <Button
                 type="submit"
                 disabled={uploadStatus === "uploading" || uploadStatus === "indexing"}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
               >
                 {uploadStatus === "uploading"
                   ? "Enviando..."
@@ -192,20 +221,38 @@ export default function MaterialsPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista</CardTitle>
+      <Card className="admin-card">
+        <CardHeader className="admin-card__header">
+          <div className="flex items-center justify-between">
+            <CardTitle className="admin-card__title text-lg font-bold">Lista de materiais</CardTitle>
+            <span className="text-xs font-medium text-muted-foreground">
+              Total: <span className="text-sm font-semibold text-foreground">{materials.length}</span>
+            </span>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="divide-y rounded-md border border-border bg-card">
+        <CardContent className="admin-card__content p-0">
+          <div className="divide-y divide-gray-200">
+            <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-teal-700 text-white border-b border-teal-800">
+              <div className="grid grid-cols-12 gap-3 px-6 py-3 text-xs font-bold uppercase tracking-wide">
+                <div className="col-span-6">Titulo</div>
+                <div className="col-span-3">Fonte</div>
+                <div className="col-span-3 text-right">Criado em</div>
+              </div>
+            </div>
+
             {materials.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground">Sem materiais ainda.</div>
+              <div className="p-8 text-sm text-center text-muted-foreground">Sem materiais ainda.</div>
             ) : (
               materials.map((m) => (
-                <div key={m.id} className="p-4 text-sm">
-                  <div className="font-medium text-foreground">{m.title}</div>
-                  <div className="mt-1 text-xs text-muted-foreground/80">ID: {m.id}</div>
-                  <div className="mt-1 text-xs text-muted-foreground/80">fonte: {m.source}</div>
+                <div key={m.id} className="grid grid-cols-12 gap-3 px-6 py-4 text-sm items-center hover:bg-gray-50 transition-all">
+                  <div className="col-span-6">
+                    <div className="font-semibold text-foreground">{m.title}</div>
+                    <div className="mt-1 text-xs text-muted-foreground/80">ID: {m.id}</div>
+                  </div>
+                  <div className="col-span-3 text-xs text-muted-foreground/80">{m.source}</div>
+                  <div className="col-span-3 text-xs text-muted-foreground/80 text-right">
+                    {m.created_at ? new Date(m.created_at).toLocaleDateString("pt-BR") : "-"}
+                  </div>
                 </div>
               ))
             )}

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import RootLayoutClient from "./layout-client";
-import SiteFooter from "@/components/layout/SiteFooter";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
@@ -27,7 +26,6 @@ export default function RootLayout({
         className={`${inter.variable} ${geistMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         <RootLayoutClient>{children}</RootLayoutClient>
-        <SiteFooter />
       </body>
     </html>
   );

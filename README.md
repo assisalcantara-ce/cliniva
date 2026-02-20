@@ -13,6 +13,7 @@ npm run dev
 Documentação interna do projeto:
 - [docs/architecture.md](docs/architecture.md)
 - [docs/agent-handbook.md](docs/agent-handbook.md)
+- [docs/ai-contract.md](docs/ai-contract.md)
 
 ## Storage (Supabase)
 

@@ -20,7 +20,8 @@ function parseRetryAfterMs(value: string | null): number | null {
   return null;
 }
 
-function getOpenAIKey(): string {
+function getOpenAIKey(override?: string): string {
+  if (override) return override;
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("Missing OPENAI_API_KEY");
   return key;
@@ -31,9 +32,10 @@ export async function openaiPostJson<TResponse>(params: {
   body: OpenAIJson;
   timeoutMs?: number;
   maxRetries?: number;
+  apiKey?: string;
 }): Promise<TResponse> {
-  const { path, body, timeoutMs = 45_000, maxRetries = 2 } = params;
-  const apiKey = getOpenAIKey();
+  const { path, body, timeoutMs = 45_000, maxRetries = 2, apiKey: apiKeyOverride } = params;
+  const apiKey = getOpenAIKey(apiKeyOverride);
 
   let attempt = 0;
   while (true) {

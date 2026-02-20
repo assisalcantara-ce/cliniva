@@ -2,13 +2,44 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { generateInsightsFromTranscript } from "@/lib/ai/generateInsights";
+import { getOrCreateTherapistId } from "@/lib/db/therapist";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+async function logAiFallback(params: {
+  req: NextRequest;
+  therapistId: string;
+  sessionId: string;
+  reason: string;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const userResult = await supabase
+    .from("users")
+    .select("id")
+    .eq("therapist_id", params.therapistId)
+    .limit(1)
+    .maybeSingle();
+
+  if (userResult.error || !userResult.data?.id) return;
+
+  const forwardedFor = params.req.headers.get("x-forwarded-for");
+  const ipAddress = forwardedFor ? forwardedFor.split(",")[0].trim() : null;
+  const userAgent = params.req.headers.get("user-agent");
+
+  await supabase.from("user_audits").insert({
+    user_id: userResult.data.id,
+    action: "ai_fallback",
+    ip_address: ipAddress,
+    user_agent: userAgent,
+    details: { reason: params.reason, session_id: params.sessionId },
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   const { id } = await params;
@@ -51,7 +82,19 @@ export async function POST(
       );
     }
 
-    const { package: pkg } = await generateInsightsFromTranscript({ chunks });
+    const { package: pkg, fallbackReason } = await generateInsightsFromTranscript({
+      chunks,
+    });
+
+    if (fallbackReason) {
+      const therapistId = await getOrCreateTherapistId({ displayName: "Dra. Cristiane" });
+      await logAiFallback({
+        req,
+        therapistId,
+        sessionId,
+        reason: fallbackReason,
+      });
+    }
 
     const title = `Suporte IA - ${new Date().toISOString().slice(0, 10)}`;
     const rows = [
@@ -82,7 +125,11 @@ export async function POST(
     }
 
     return NextResponse.json(
-      { package: pkg, insights: insertResult.data ?? [] },
+      {
+        package: pkg,
+        insights: insertResult.data ?? [],
+        fallback: fallbackReason ? { used: true, reason: fallbackReason } : { used: false },
+      },
       { status: 200 },
     );
   } catch (error) {

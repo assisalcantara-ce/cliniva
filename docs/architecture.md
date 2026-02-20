@@ -22,6 +22,7 @@ Arquivo local: `.env.local` (não versionar)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only; usado apenas no admin client)
 - `OPENAI_API_KEY` (server-only)
+- `OPENAI_KEY_ENCRYPTION_SECRET` (server-only; criptografia da chave por terapeuta)
 
 ## Estrutura de pastas (principais)
 - `app/`
@@ -91,6 +92,9 @@ Arquivo local: `.env.local` (não versionar)
 5. Verifica que `chunk_id` citados existem.
 6. Modera a saída **antes de salvar**.
 7. Persiste em `session_insights` por `kind`.
+
+## Contrato do copiloto
+Regras de papel, limites, tom, política de risco e schema oficial estão em [docs/ai-contract.md](docs/ai-contract.md).
 
 ### Formato de evidências
 - Evidência pode vir de transcrição ou de material:

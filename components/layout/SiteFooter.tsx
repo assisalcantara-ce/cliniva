@@ -9,7 +9,7 @@ export default function SiteFooter() {
         <div className="space-y-3">
           <img src="/img/Logo.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
           <p className="text-sm text-slate-600">
-            Copiloto profissional para terapeutas, com apoio de inteligencia artificial e foco
+            Copiloto profissional para terapeutas, com apoio de inteligência artificial e foco
             humano.
           </p>
         </div>
@@ -24,9 +24,6 @@ export default function SiteFooter() {
             </Link>
             <Link href="/planos" className="hover:text-emerald-700">
               Planos
-            </Link>
-            <Link href="/login" className="hover:text-emerald-700">
-              Entrar
             </Link>
             <Link href="/termos" className="hover:text-emerald-700">
               Termos

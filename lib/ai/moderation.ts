@@ -18,8 +18,11 @@ export type ModerationResult = {
 
 export async function moderateText(params: {
   input: string;
+  apiKey?: string;
+  provider?: "openai" | "mock";
 }): Promise<ModerationResult> {
-  if (process.env.AI_PROVIDER === "mock") {
+  const provider = params.provider ?? (process.env.AI_PROVIDER === "mock" ? "mock" : "openai");
+  if (provider === "mock") {
     const t = params.input.toLowerCase();
     const selfHarm = /(suicid|tirar a (pr[oó]pria )?vida|me matar|matar[- ]me|autoagress)/.test(
       t,
@@ -43,6 +46,7 @@ export async function moderateText(params: {
       input: params.input,
     },
     timeoutMs: 30_000,
+    apiKey: params.apiKey,
   });
 
   const first = response.results?.[0];

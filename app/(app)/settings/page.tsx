@@ -32,6 +32,12 @@ type SettingsData = {
   photo_url: string;
 };
 
+type AiStatus = {
+  has_key: boolean;
+  key_last4: string;
+  key_added_at?: string;
+};
+
 type ModalState = {
   isOpen: boolean;
   type: "success" | "error" | "warning" | "info";
@@ -74,6 +80,9 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState("empresa");
+  const [aiStatus, setAiStatus] = useState<AiStatus>({ has_key: false, key_last4: "" });
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [removeOpenaiKey, setRemoveOpenaiKey] = useState(false);
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
     type: "info",
@@ -98,6 +107,13 @@ export default function SettingsPage() {
         setSettings(data.settings || emptySettings);
         setLogoPreview(data.settings?.logo_url || "");
         setPhotoPreview(data.settings?.photo_url || "");
+        setAiStatus({
+          has_key: Boolean(data.ai?.has_key),
+          key_last4: typeof data.ai?.key_last4 === "string" ? data.ai.key_last4 : "",
+          key_added_at: typeof data.ai?.key_added_at === "string" ? data.ai.key_added_at : undefined,
+        });
+        setOpenaiApiKey("");
+        setRemoveOpenaiKey(false);
       }
     } catch (err) {
       console.error("Erro ao carregar configurações:", err);
@@ -206,14 +222,25 @@ export default function SettingsPage() {
     setError(null);
 
     try {
+      const payload: SettingsData & { openai_api_key?: string; remove_openai_key?: boolean } = {
+        ...settings,
+      };
+      if (openaiApiKey.trim()) {
+        payload.openai_api_key = openaiApiKey.trim();
+      }
+      if (removeOpenaiKey) {
+        payload.remove_openai_key = true;
+      }
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         showModal("success", "Sucesso", "Configurações salvas com sucesso");
+        setOpenaiApiKey("");
+        setRemoveOpenaiKey(false);
         await loadSettings();
       } else {
         const json = (await res.json()) as { error?: string };
@@ -323,6 +350,16 @@ export default function SettingsPage() {
           }`}
         >
           Dados do Profissional
+        </button>
+        <button
+          onClick={() => setCurrentTab("ia")}
+          className={`px-4 py-3 font-semibold border-b-2 transition-colors ${
+            currentTab === "ia"
+              ? "border-teal-600 text-teal-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          IA
         </button>
         <button
           onClick={() => setCurrentTab("plano")}
@@ -622,6 +659,104 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Aba IA */}
+        {currentTab === "ia" && (
+          <div className="grid grid-cols-1 gap-6">
+            <Card className="admin-card">
+              <CardHeader className="admin-card__header">
+                <CardTitle className="admin-card__title">Chave OpenAI</CardTitle>
+              </CardHeader>
+              <CardContent className="admin-card__content space-y-4">
+                <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+                  A chave fica salva no servidor e nao e exibida novamente. Sem chave, o sistema
+                  continua funcionando com transcricao de texto.
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
+                  <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                    aiStatus.has_key ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                  }`}>
+                    {aiStatus.has_key ? "Chave configurada" : "Chave nao configurada"}
+                  </span>
+                  {aiStatus.has_key && aiStatus.key_last4 ? (
+                    <span className="text-xs text-slate-500">
+                      Final: ****{aiStatus.key_last4}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="field">
+                  <label className="label">Nova chave OpenAI</label>
+                  <Input
+                    type="password"
+                    value={openaiApiKey}
+                    onChange={(e) => {
+                      setOpenaiApiKey(e.target.value);
+                      if (removeOpenaiKey) setRemoveOpenaiKey(false);
+                    }}
+                    placeholder="sk-..."
+                    className="control"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={!aiStatus.has_key}
+                    onClick={() => {
+                      setRemoveOpenaiKey(true);
+                      showModal(
+                        "warning",
+                        "Remover chave",
+                        "A chave sera removida ao salvar as configuracoes."
+                      );
+                    }}
+                  >
+                    Remover chave
+                  </Button>
+                  <span className="text-xs text-slate-500">
+                    {removeOpenaiKey ? "Remocao pendente" : ""}
+                  </span>
+                </div>
+
+              </CardContent>
+            </Card>
+
+            <Card className="admin-card border-emerald-200 bg-emerald-50">
+              <CardHeader className="admin-card__header">
+                <CardTitle className="admin-card__title">Dica: como obter sua chave</CardTitle>
+              </CardHeader>
+              <CardContent className="admin-card__content space-y-3 text-sm text-emerald-900">
+                <p>
+                  A chave e gerada no painel da OpenAI. Com ela, voce controla seus custos e
+                  consegue acompanhar o uso direto na sua conta.
+                </p>
+                <ol className="list-decimal space-y-1 pl-5">
+                  <li>Acesse o painel da OpenAI.</li>
+                  <li>Crie ou selecione um projeto.</li>
+                  <li>Vá em <strong>API Keys</strong> e gere uma nova chave.</li>
+                  <li>Copie e cole a chave aqui nesta aba.</li>
+                </ol>
+                <div className="rounded-md border border-emerald-200 bg-white/80 px-3 py-2 text-xs text-emerald-800">
+                  Link direto:{" "}
+                  <a
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold underline underline-offset-2"
+                  >
+                    https://platform.openai.com/api-keys
+                  </a>
+                </div>
+                <p className="text-xs text-emerald-800">
+                  Sem chave, o Cliniva continua funcionando com transcricao de texto (IA gratuita).
+                </p>
               </CardContent>
             </Card>
           </div>

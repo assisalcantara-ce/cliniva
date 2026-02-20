@@ -4,9 +4,11 @@ import { z } from "zod";
 
 import { moderateText } from "@/lib/ai/moderation";
 import { openaiPostJson } from "@/lib/ai/openai";
+import { getOrCreateTherapistId, getTherapistOpenAiKey } from "@/lib/db/therapist";
 import {
-  buildTherapyCopilotSystemPrompt,
-  buildTherapyCopilotUserPrompt,
+  buildUserPrompt,
+  COPILOT_DEVELOPER_PROMPT,
+  COPILOT_SYSTEM_PROMPT,
 } from "@/lib/ai/prompts";
 import { generateMockInsightsFromTranscript, getAiProvider } from "@/lib/ai/mock";
 import { retrieveMaterialChunks } from "@/lib/rag/retrieve";
@@ -73,6 +75,15 @@ export const insightsSchema = z.object({
 });
 
 export type InsightsPackage = z.infer<typeof insightsSchema>;
+
+type FallbackReason = "missing_key" | "quota";
+
+export type GenerateInsightsResult = {
+  package: InsightsPackage;
+  inputModerationFlagged: boolean;
+  provider: "openai" | "mock";
+  fallbackReason?: FallbackReason;
+};
 
 const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
   type: "object",
@@ -319,140 +330,219 @@ function packageToModerationText(pkg: InsightsPackage): string {
   ].join("\n");
 }
 
+function isQuotaError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return /insufficient[_ -]?quota|quota|billing|payment|402|429/i.test(msg);
+}
+
+function buildMockInsights(
+  chunks: TranscriptChunk[],
+  fallbackReason?: FallbackReason,
+): GenerateInsightsResult {
+  const { candidate, inputModerationFlagged } = generateMockInsightsFromTranscript({
+    chunks,
+  });
+
+  const pkg = insightsSchema.parse(candidate);
+  const allowedChunkIds = new Set(chunks.map((c) => c.id));
+  validateEvidenceChunkIds(pkg, allowedChunkIds);
+
+  return {
+    package: pkg,
+    inputModerationFlagged,
+    provider: "mock",
+    fallbackReason,
+  };
+}
+
 export async function generateInsightsFromTranscript(params: {
   chunks: TranscriptChunk[];
-}): Promise<{ package: InsightsPackage; inputModerationFlagged: boolean }> {
-  const provider = getAiProvider();
+}): Promise<GenerateInsightsResult> {
+  const therapistId = await getOrCreateTherapistId({ displayName: "Dra. Cristiane" });
+  const { apiKey: therapistApiKey } = await getTherapistOpenAiKey({ therapistId });
+  const envProvider = getAiProvider();
+  const provider = envProvider === "mock" ? "mock" : therapistApiKey ? "openai" : "mock";
+  const fallbackReason: FallbackReason | undefined =
+    envProvider === "mock" ? undefined : therapistApiKey ? undefined : "missing_key";
 
   const transcript = chunksToTranscript(params.chunks);
-
-  const inputModeration = await moderateText({ input: transcript });
+  let inputModeration: ModerationResult;
+  try {
+    inputModeration = await moderateText({
+      input: transcript,
+      apiKey: therapistApiKey,
+      provider,
+    });
+  } catch (err) {
+    if (provider === "openai" && isQuotaError(err)) {
+      return buildMockInsights(params.chunks, "quota");
+    }
+    throw err;
+  }
   const flaggedCategories = Object.entries(inputModeration.categories)
     .filter(([, v]) => v)
     .map(([k]) => k)
     .slice(0, 8);
 
-  const systemPrompt = buildTherapyCopilotSystemPrompt({
-    inputFlagged: inputModeration.flagged,
-    flaggedCategories,
-  });
+  const safetyContext = inputModeration.flagged
+    ? `Contexto de seguranca: a transcricao foi sinalizada na moderacao (categorias: ${flaggedCategories.join(", ") || "(nao especificadas)"}). Mantenha linguagem ainda mais cuidadosa e segura.`
+    : "Contexto de seguranca: a transcricao nao foi sinalizada na moderacao.";
+
+  const systemPrompt = [COPILOT_SYSTEM_PROMPT, safetyContext].join("\n\n");
 
   if (provider === "mock") {
-    const { candidate, inputModerationFlagged } = generateMockInsightsFromTranscript({
-      chunks: params.chunks,
-    });
-
-    const pkg = insightsSchema.parse(candidate);
-    const allowedChunkIds = new Set(params.chunks.map((c) => c.id));
-    validateEvidenceChunkIds(pkg, allowedChunkIds);
-
+    const { package: pkg, inputModerationFlagged } = buildMockInsights(
+      params.chunks,
+      fallbackReason,
+    );
     const outputModeration = await moderateText({
       input: packageToModerationText(pkg),
+      provider,
     });
     if (outputModeration.flagged) {
       throw new Error("AI output failed moderation");
     }
 
-    return { package: pkg, inputModerationFlagged };
+    return { package: pkg, inputModerationFlagged, provider: "mock", fallbackReason };
   }
 
-  let materialsContext: string | undefined;
-  try {
-    const queryText = buildRagQueryText(params.chunks);
-    const retrieved = await retrieveMaterialChunks({ queryText, topK: 8 });
-    materialsContext = formatMaterialsContext(
-      retrieved.map((r) => ({
-        material_id: r.material_id,
-        chunk_text: r.chunk_text,
-        score: r.score,
-      })),
-    );
-  } catch {
-    materialsContext = undefined;
+  if (!therapistApiKey) {
+    throw new Error("Missing therapist OpenAI key for provider openai");
   }
 
-  const userPrompt = buildTherapyCopilotUserPrompt({
-    transcript,
-    materialsContext: materialsContext?.trim().length ? materialsContext : undefined,
-  });
-
-  type ResponsesApiResponse = unknown;
-
-  let responseText = "";
   try {
-    const response = await openaiPostJson<ResponsesApiResponse>({
-      path: "/responses",
-      body: {
-        model: "gpt-5.1-chat-latest",
-        input: [
-          { role: "system", content: [{ type: "text", text: systemPrompt }] },
-          { role: "user", content: [{ type: "text", text: userPrompt }] },
-        ],
-        temperature: 0.2,
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "therapy_insights",
-            strict: true,
-            schema: INSIGHTS_JSON_SCHEMA,
+    let materialsContext: string | undefined;
+    try {
+      const queryText = buildRagQueryText(params.chunks);
+      const retrieved = await retrieveMaterialChunks({ queryText, topK: 8 });
+      materialsContext = formatMaterialsContext(
+        retrieved.map((r) => ({
+          material_id: r.material_id,
+          chunk_text: r.chunk_text,
+          score: r.score,
+        })),
+      );
+    } catch (err) {
+      if (isQuotaError(err)) {
+        throw err;
+      }
+      materialsContext = undefined;
+    }
+
+    const userPrompt = buildUserPrompt({
+      chunks: params.chunks,
+      materialsContext: materialsContext?.trim().length ? materialsContext : undefined,
+    });
+
+    type ResponsesApiResponse = unknown;
+
+    let responseText = "";
+    try {
+      const response = await openaiPostJson<ResponsesApiResponse>({
+        path: "/responses",
+        body: {
+          model: "gpt-5.1-chat-latest",
+          input: [
+            { role: "system", content: [{ type: "text", text: systemPrompt }] },
+            { role: "developer", content: [{ type: "text", text: COPILOT_DEVELOPER_PROMPT }] },
+            { role: "user", content: [{ type: "text", text: userPrompt }] },
+          ],
+          temperature: 0.2,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "therapy_insights",
+              strict: true,
+              schema: INSIGHTS_JSON_SCHEMA,
+            },
           },
         },
-      },
-      timeoutMs: 60_000,
-    });
-    responseText = extractResponseText(response);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "OpenAI error";
+        timeoutMs: 60_000,
+        apiKey: therapistApiKey,
+      });
+      responseText = extractResponseText(response);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "OpenAI error";
 
-    const response = await openaiPostJson<ResponsesApiResponse>({
-      path: "/responses",
-      body: {
-        model: "gpt-5.1-chat-latest",
-        input: [
-          { role: "system", content: [{ type: "text", text: systemPrompt }] },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text:
-                  userPrompt +
-                  "\n\nIMPORTANTE: Retorne SOMENTE um objeto JSON válido (sem markdown).",
-              },
-            ],
-          },
-        ],
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-      },
-      timeoutMs: 60_000,
-    });
-    responseText = extractResponseText(response);
+      const response = await openaiPostJson<ResponsesApiResponse>({
+        path: "/responses",
+        body: {
+          model: "gpt-5.1-chat-latest",
+          input: [
+            { role: "system", content: [{ type: "text", text: systemPrompt }] },
+            { role: "developer", content: [{ type: "text", text: COPILOT_DEVELOPER_PROMPT }] },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text:
+                    userPrompt +
+                    "\n\nIMPORTANTE: Retorne SOMENTE um objeto JSON valido (sem markdown).",
+                },
+              ],
+            },
+          ],
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+        },
+        timeoutMs: 60_000,
+        apiKey: therapistApiKey,
+      });
+      responseText = extractResponseText(response);
 
-    if (!responseText) {
-      throw new Error(message);
+      if (!responseText) {
+        throw new Error(message);
+      }
     }
+
+    const cleaned = stripCodeFences(responseText);
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(cleaned) as unknown;
+    } catch {
+      throw new Error("AI returned invalid JSON");
+    }
+
+    const pkg = insightsSchema.parse(parsedJson);
+    const allowedChunkIds = new Set(params.chunks.map((c) => c.id));
+    validateEvidenceChunkIds(pkg, allowedChunkIds);
+
+    const outputModeration = await moderateText({
+      input: packageToModerationText(pkg),
+      apiKey: therapistApiKey,
+      provider,
+    });
+
+    if (outputModeration.flagged) {
+      throw new Error("AI output failed moderation");
+    }
+
+    return {
+      package: pkg,
+      inputModerationFlagged: inputModeration.flagged,
+      provider: "openai",
+    };
+  } catch (err) {
+    if (isQuotaError(err)) {
+      const { package: pkg, inputModerationFlagged } = buildMockInsights(
+        params.chunks,
+        "quota",
+      );
+      const outputModeration = await moderateText({
+        input: packageToModerationText(pkg),
+        provider: "mock",
+      });
+      if (outputModeration.flagged) {
+        throw new Error("AI output failed moderation");
+      }
+      return {
+        package: pkg,
+        inputModerationFlagged,
+        provider: "mock",
+        fallbackReason: "quota",
+      };
+    }
+    throw err;
   }
-
-  const cleaned = stripCodeFences(responseText);
-  let parsedJson: unknown;
-  try {
-    parsedJson = JSON.parse(cleaned) as unknown;
-  } catch {
-    throw new Error("AI returned invalid JSON");
-  }
-
-  const pkg = insightsSchema.parse(parsedJson);
-  const allowedChunkIds = new Set(params.chunks.map((c) => c.id));
-  validateEvidenceChunkIds(pkg, allowedChunkIds);
-
-  const outputModeration = await moderateText({
-    input: packageToModerationText(pkg),
-  });
-
-  if (outputModeration.flagged) {
-    throw new Error("AI output failed moderation");
-  }
-
-  return { package: pkg, inputModerationFlagged: inputModeration.flagged };
 }

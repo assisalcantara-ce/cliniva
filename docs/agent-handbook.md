@@ -9,6 +9,9 @@ Amanhã vou retomar a implementação com mudanças pequenas e seguras, prioriza
 - Conteúdo clínico: NÃO diagnosticar. Só hipóteses e perguntas. Sempre com evidências.
 - Sempre rodar moderação na entrada e na saída antes de persistir insights.
 - Mudanças pequenas e incrementais. Sem novas libs sem justificativa.
+- Qualquer mudança no schema -> atualizar Zod + UI + docs/ai-contract.md.
+- Qualquer mudança no modelo -> testar /api/diag/openai e geração completa.
+- Sempre rodar smoke test após alterações na IA.
 
 ## 3) Checagem rápida (antes de codar)
 - `npm run dev` sobe sem erros.
