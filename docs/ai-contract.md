@@ -29,6 +29,12 @@ Se houver risco (autoagressao, violencia, abuso): alertar e sugerir protocolo/en
 - Sem chave, o sistema segue com a IA gratuita e transcricao de texto.
 - A chave e armazenada criptografada no servidor.
 
+## Agendamento (MVP)
+- Disponibilidade semanal por terapeuta em `therapist_availability_rules`.
+- Bloqueios pontuais em `therapist_availability_blocks`.
+- Agendamentos em `appointments` com status: requested, confirmed, cancelled.
+- O agendamento da landing cria paciente + anamnesis antes de reservar o horario.
+
 ## Schema JSON oficial
 ```json
 {

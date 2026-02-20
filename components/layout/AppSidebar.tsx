@@ -34,8 +34,9 @@ export function AppSidebar({ open, onClose }: { open: boolean; onClose: () => vo
     { href: "/patients", label: "Pacientes", match: "prefix" },
     { href: "/materials", label: "Materiais", match: "prefix" },
     { href: "/sessions", label: "Sessões", match: "prefix" },
-    { href: "/settings", label: "Configurações", match: "prefix" },
+    { href: "/appointments", label: "Agendamentos", match: "prefix" },
     { href: "/support", label: "Suporte", match: "prefix" },
+    { href: "/settings", label: "Configurações", match: "prefix" },
   ];
 
   return (

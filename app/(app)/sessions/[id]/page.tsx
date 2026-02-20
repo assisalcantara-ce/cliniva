@@ -30,6 +30,10 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
+  const [aiHasKey, setAiHasKey] = useState(false);
+  const [deletingChunkId, setDeletingChunkId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [patientName, setPatientName] = useState<string | null>(null);
   const chunksPerPage = 1;
   const totalPages = Math.max(1, Math.ceil(chunks.length / chunksPerPage));
   const pageChunks = chunks.slice((chunksPage - 1) * chunksPerPage, chunksPage * chunksPerPage);
@@ -94,19 +98,57 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     }
     if ("chunks" in json) {
       setChunks(json.chunks);
-      setChunksPage(1);
+      const nextTotalPages = Math.max(1, Math.ceil(json.chunks.length / chunksPerPage));
+      setChunksPage(nextTotalPages);
     }
-  }, [sessionId]);
+  }, [sessionId, chunksPerPage]);
 
   useEffect(() => {
     void loadChunks();
     void loadInsights();
   }, [loadChunks, loadInsights]);
 
+  useEffect(() => {
+    async function loadSessionMeta() {
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`, { cache: "no-store" });
+        if (!res.ok) {
+          setPatientName(null);
+          return;
+        }
+        const json = (await res.json()) as { patient_name?: string | null };
+        setPatientName(typeof json.patient_name === "string" ? json.patient_name : null);
+      } catch {
+        setPatientName(null);
+      }
+    }
+
+    void loadSessionMeta();
+  }, [sessionId]);
+
+  useEffect(() => {
+    async function loadAiStatus() {
+      try {
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        if (!res.ok) {
+          setAiHasKey(false);
+          return;
+        }
+        const json = (await res.json()) as { ai?: { has_key?: boolean } };
+        setAiHasKey(Boolean(json.ai?.has_key));
+      } catch {
+        setAiHasKey(false);
+      }
+    }
+
+    void loadAiStatus();
+  }, []);
+
   async function generateInsights() {
     setIsGenerating(true);
     setError(null);
     try {
+      await loadChunks();
       const res = await fetch(`/api/sessions/${sessionId}/insights/generate`, { method: "POST" });
       const json = (await res.json()) as
         | { package: InsightsPackage; fallback?: { used: boolean; reason?: string } }
@@ -146,9 +188,11 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     setError(null);
     try {
       const payload: Record<string, unknown> = { text };
-      if (speaker.trim().length) payload.speaker = speaker;
-      if (tStart.trim().length) payload.t_start_seconds = Number(tStart);
-      if (tEnd.trim().length) payload.t_end_seconds = Number(tEnd);
+      if (aiHasKey) {
+        if (speaker.trim().length) payload.speaker = speaker;
+        if (tStart.trim().length) payload.t_start_seconds = Number(tStart);
+        if (tEnd.trim().length) payload.t_end_seconds = Number(tEnd);
+      }
 
       const res = await fetch(`/api/sessions/${sessionId}/transcript`, {
         method: "POST",
@@ -166,12 +210,47 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       setSpeaker("");
       setTStart("");
       setTEnd("");
-      setChunksPage(1);
       await loadChunks();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao salvar trecho");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  function requestDeleteChunk(chunkId: string) {
+    setDeleteTargetId(chunkId);
+  }
+
+  function closeDeleteModal() {
+    if (deletingChunkId) return;
+    setDeleteTargetId(null);
+  }
+
+  async function confirmDeleteChunk() {
+    if (!deleteTargetId) return;
+    const chunkId = deleteTargetId;
+    setDeletingChunkId(chunkId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/transcript`, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ chunk_id: chunkId }),
+      });
+
+      const json = (await res.json()) as { ok?: boolean } | { error: string };
+      if (!res.ok) {
+        setError("error" in json ? json.error : "Falha ao excluir trecho");
+        return;
+      }
+
+      await loadChunks();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao excluir trecho");
+    } finally {
+      setDeletingChunkId(null);
+      setDeleteTargetId(null);
     }
   }
 
@@ -197,27 +276,12 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
               Atendimento
             </h1>
             <div className="text-xs text-muted-foreground/80">ID: {sessionId}</div>
+            {patientName ? (
+              <div className="text-xs text-muted-foreground/80">Paciente: {patientName}</div>
+            ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/patients">Pacientes</Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Button
-          type="button"
-          onClick={generateInsights}
-          disabled={isGenerating}
-          className="bg-teal-600 hover:bg-teal-700 text-white"
-        >
-          {isGenerating ? "Gerando..." : "Gerar suporte (IA)"}
-        </Button>
-        <Button type="button" variant="secondary" onClick={() => void loadInsights()}>
-          Recarregar suporte
-        </Button>
+        <div className="flex flex-wrap items-center gap-2" />
       </div>
 
       {error ? (
@@ -246,42 +310,44 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background control"
-                    rows={6}
+                    rows={9}
                     placeholder="Cole ou digite um trecho da sessão..."
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <div className="field">
-                    <label className="label">Falante (opcional)</label>
-                    <Input
-                      value={speaker}
-                      onChange={(e) => setSpeaker(e.target.value)}
-                      className="control"
-                      placeholder="terapeuta | paciente"
-                    />
+                {aiHasKey ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="field">
+                      <label className="label">Falante (opcional)</label>
+                      <Input
+                        value={speaker}
+                        onChange={(e) => setSpeaker(e.target.value)}
+                        className="control"
+                        placeholder="terapeuta | paciente"
+                      />
+                    </div>
+                    <div className="field">
+                      <label className="label">Início (s)</label>
+                      <Input
+                        value={tStart}
+                        onChange={(e) => setTStart(e.target.value)}
+                        className="control"
+                        placeholder="0"
+                        inputMode="decimal"
+                      />
+                    </div>
+                    <div className="field">
+                      <label className="label">Fim (s)</label>
+                      <Input
+                        value={tEnd}
+                        onChange={(e) => setTEnd(e.target.value)}
+                        className="control"
+                        placeholder="15"
+                        inputMode="decimal"
+                      />
+                    </div>
                   </div>
-                  <div className="field">
-                    <label className="label">Início (s)</label>
-                    <Input
-                      value={tStart}
-                      onChange={(e) => setTStart(e.target.value)}
-                      className="control"
-                      placeholder="0"
-                      inputMode="decimal"
-                    />
-                  </div>
-                  <div className="field">
-                    <label className="label">Fim (s)</label>
-                    <Input
-                      value={tEnd}
-                      onChange={(e) => setTEnd(e.target.value)}
-                      className="control"
-                      placeholder="15"
-                      inputMode="decimal"
-                    />
-                  </div>
-                </div>
+                ) : null}
 
                 <Button type="submit" disabled={isSaving} className="bg-teal-600 hover:bg-teal-700 text-white">
                   {isSaving ? "Salvando..." : "Salvar trecho"}
@@ -295,16 +361,26 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
               <CardTitle className="admin-card__title">Trechos da transcrição</CardTitle>
             </CardHeader>
             <CardContent className="admin-card__content p-0">
-              <div className="max-h-72 overflow-y-auto divide-y divide-gray-200">
+              <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-200">
                 {chunks.length === 0 ? (
                   <div className="p-6 text-sm text-muted-foreground">Sem trechos ainda.</div>
                 ) : (
                   pageChunks.map((c) => (
                     <div key={c.id} className="px-6 py-4">
-                      <div className="text-xs text-muted-foreground/80">
-                        {c.speaker ? `falante: ${c.speaker} · ` : ""}
-                        {c.t_start_seconds != null ? `início: ${c.t_start_seconds} · ` : ""}
-                        {c.t_end_seconds != null ? `fim: ${c.t_end_seconds}` : ""}
+                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground/80">
+                        <div>
+                          {c.speaker ? `falante: ${c.speaker} · ` : ""}
+                          {c.t_start_seconds != null ? `início: ${c.t_start_seconds} · ` : ""}
+                          {c.t_end_seconds != null ? `fim: ${c.t_end_seconds}` : ""}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => requestDeleteChunk(c.id)}
+                          disabled={deletingChunkId === c.id}
+                          className="text-xs font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                        >
+                          {deletingChunkId === c.id ? "Excluindo..." : "Excluir"}
+                        </button>
                       </div>
                       <div className="mt-2 whitespace-pre-wrap text-sm text-foreground">
                         {c.text}
@@ -340,11 +416,20 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
           </Card>
         </div>
 
-        <Card className="admin-card">
+        <Card className="admin-card h-full">
           <CardHeader className="admin-card__header">
-            <CardTitle className="admin-card__title">Suporte (IA)</CardTitle>
+            <div className="flex items-center justify-start">
+              <Button
+                type="button"
+                onClick={generateInsights}
+                disabled={isGenerating || isSaving}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {isGenerating ? "Gerando..." : "Gerar suporte (IA)"}
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="admin-card__content">
+          <CardContent className="admin-card__content flex min-h-0 flex-1 flex-col overflow-hidden">
             {insights ? (
               <InsightCards pkg={insights} />
             ) : (
@@ -355,6 +440,40 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
           </CardContent>
         </Card>
       </div>
+
+      {deleteTargetId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="border-b border-border px-6 py-4">
+              <div className="text-sm font-semibold text-foreground">Excluir trecho</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Esta acao nao pode ser desfeita.
+              </div>
+            </div>
+            <div className="px-6 py-5 text-sm text-foreground">
+              Deseja excluir este trecho da transcricao?
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-border px-6 py-4">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={Boolean(deletingChunkId)}
+                className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-700 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmDeleteChunk()}
+                disabled={Boolean(deletingChunkId)}
+                className="rounded-full bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deletingChunkId ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

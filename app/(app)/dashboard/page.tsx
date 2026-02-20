@@ -69,6 +69,12 @@ function formatDayLabel(d: Date) {
   return `${dd}/${mm}`;
 }
 
+function formatDateTime(value?: string) {
+  const d = parseDateOrNull(value);
+  if (!d) return "—";
+  return d.toLocaleString("pt-BR");
+}
+
 export default function DashboardPage() {
   const isDev = process.env.NODE_ENV === "development";
 
@@ -219,30 +225,44 @@ export default function DashboardPage() {
   }, [patients, patientNameById]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="text-2xl font-bold text-foreground">Bem-vindo ao Copiloto de Terapia CLINIVA.COM</div>
-          <div className="mt-2 text-sm text-muted-foreground">Gerencie sua instituição com inteligência artificial</div>
+    <div className="patients-page space-y-6">
+      <div className="page-header">
+        <div className="title-row">
+          <svg
+            className="title-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style={{ width: "40px", height: "40px" }}
+          >
+            <rect x="3" y="4" width="18" height="16" rx="2" stroke="#0f766e" strokeWidth="2" />
+            <path d="M7 8h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M7 12h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M7 16h6" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <div>
+            <h1 className="page-title" style={{ fontSize: "32px" }}>
+              Dashboard
+            </h1>
+            <div className="text-xs text-muted-foreground/80">
+              Visao geral com dados reais do consultorio
+            </div>
+          </div>
         </div>
-        {isDev ? (
-          <Button type="button" onClick={runSeed} disabled={isSeeding}>
-            {isSeeding ? "Criando terapeuta de teste..." : "Criar terapeuta de teste"}
-          </Button>
-        ) : null}
       </div>
 
       {seedError ? (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="admin-card border-red-200 bg-red-50">
           <CardContent className="p-5 text-sm text-red-800">{seedError}</CardContent>
         </Card>
       ) : seedResult ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Terapeuta</CardTitle>
+        <Card className="admin-card">
+          <CardHeader className="admin-card__header">
+            <CardTitle className="admin-card__title">Terapeuta</CardTitle>
             <CardDescription>Terapeuta de teste criado com sucesso.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
+          <CardContent className="admin-card__content space-y-1 text-sm">
             <div className="text-muted-foreground">{seedResult.display_name}</div>
             <div className="text-xs text-muted-foreground/80">ID: {seedResult.id}</div>
           </CardContent>
@@ -303,32 +323,51 @@ export default function DashboardPage() {
         </ChartCard>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DonutCard title="Consentimentos" value={consentRate} label="Taxa de consentimento nas sessões recentes" />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Últimas sessões</CardTitle>
-            <CardDescription>Mais recentes (por paciente)</CardDescription>
+        <Card className="admin-card">
+          <CardHeader className="admin-card__header">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="admin-card__title">Últimas sessões</CardTitle>
+                <CardDescription>Mais recentes (por paciente)</CardDescription>
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">
+                Total: <span className="text-sm font-semibold text-foreground">{latestSessions.length}</span>
+              </span>
+            </div>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="admin-card__content p-0">
             {latestSessions.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Sem sessões ainda.</div>
+              <div className="p-6 text-sm text-center text-muted-foreground">Sem sessões ainda.</div>
             ) : (
-              <div className="divide-y rounded-md border border-border bg-card">
+              <div className="divide-y divide-gray-200">
+                <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-teal-700 text-white border-b border-teal-800">
+                  <div className="grid grid-cols-12 gap-3 px-6 py-3 text-xs font-bold uppercase tracking-wide">
+                    <div className="col-span-7">Paciente</div>
+                    <div className="col-span-5 text-right">Data do atendimento</div>
+                  </div>
+                </div>
                 {latestSessions.slice(0, 6).map((s) => (
                   <Link
                     key={s.id}
                     href={`/sessions/${s.id}`}
-                    className="block px-4 py-3 text-sm hover:bg-background"
+                    className="block px-6 py-4 text-sm hover:bg-gray-50 transition-all"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="font-medium text-foreground">
-                        {s.patient_name ?? "Paciente"}
+                    <div className="grid grid-cols-12 gap-3 items-center">
+                      <div className="col-span-7">
+                        <div className="font-semibold text-foreground">
+                          {s.patient_name ?? "Paciente"}
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground/80">
+                          {s.consented ? "Consentido" : "Sem consentimento"}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">{s.created_at ?? ""}</div>
+                      <div className="col-span-5 text-xs text-muted-foreground/80 text-right">
+                        {formatDateTime(s.created_at)}
+                      </div>
                     </div>
-                    <div className="mt-1 text-xs text-muted-foreground">sessão: {s.id}</div>
                   </Link>
                 ))}
               </div>
@@ -336,23 +375,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações rápidas</CardTitle>
-            <CardDescription>Atalhos do fluxo principal</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-6">
-            <Button asChild className="w-full">
-              <Link href="/patients">Novo paciente</Link>
-            </Button>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href="/patients">Nova sessão</Link>
-            </Button>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href="/materials">Adicionar material</Link>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

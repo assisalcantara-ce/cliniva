@@ -13,6 +13,10 @@ const createChunkSchema = z.object({
   t_end_seconds: z.number().nonnegative().optional(),
 });
 
+const deleteChunkSchema = z.object({
+  chunk_id: z.string().min(1),
+});
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
@@ -81,6 +85,51 @@ export async function POST(
     }
 
     return NextResponse.json({ chunk: insertResult.data }, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } },
+) {
+  try {
+    const { id } = await params;
+    const sessionId = z.string().min(1).parse(id);
+    const body = await req.json();
+    const parsed = deleteChunkSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid payload", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    const supabase = createSupabaseAdminClient();
+    const deleteResult = await supabase
+      .from("transcript_chunks")
+      .delete()
+      .eq("id", parsed.data.chunk_id)
+      .eq("session_id", sessionId)
+      .select("id");
+
+    if (deleteResult.error) {
+      return NextResponse.json(
+        { error: deleteResult.error.message },
+        { status: 500 },
+      );
+    }
+
+    if (!deleteResult.data || deleteResult.data.length === 0) {
+      return NextResponse.json(
+        { error: "Chunk not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

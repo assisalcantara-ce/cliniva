@@ -37,11 +37,9 @@ function ChevronDown(props: React.SVGProps<SVGSVGElement>) {
 export function AppTopbar({
   aiOnline,
   onOpenSidebar,
-  onToggleAIStatus,
 }: {
   aiOnline: boolean;
   onOpenSidebar: () => void;
-  onToggleAIStatus: () => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -73,19 +71,17 @@ export function AppTopbar({
 
         <div className="min-w-0 flex-1"></div>
 
-        <button
-          type="button"
-          onClick={onToggleAIStatus}
+        <div
           className={cn(
-            "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm shadow-black/5 cursor-pointer transition-colors",
-            aiOnline 
-              ? "border-green-300 bg-green-50 text-green-900 hover:bg-green-100" 
-              : "border-red-300 bg-red-50 text-red-900 hover:bg-red-100"
+            "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm shadow-black/5",
+            aiOnline
+              ? "border-green-300 bg-green-50 text-green-900"
+              : "border-red-300 bg-red-50 text-red-900"
           )}
         >
           <div className={cn("h-2 w-2 rounded-full", aiOnline ? "bg-green-500" : "bg-red-500")} />
           <span>{aiOnline ? "IA online" : "IA offline"}</span>
-        </button>
+        </div>
 
         <details className="relative">
           <summary className="list-none">
