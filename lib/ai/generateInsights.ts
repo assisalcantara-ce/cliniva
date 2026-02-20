@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-import { moderateText } from "@/lib/ai/moderation";
+import { moderateText, type ModerationResult } from "@/lib/ai/moderation";
 import { openaiPostJson } from "@/lib/ai/openai";
 import { getOrCreateTherapistId, getTherapistOpenAiKey } from "@/lib/db/therapist";
 import {
