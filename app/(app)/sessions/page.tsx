@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
@@ -35,6 +36,7 @@ function normalizePreview(text: string) {
 }
 
 export default function SessionsIndexPage() {
+  const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [sessions, setSessions] = useState<Array<Session & { patient_name?: string }>>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +45,13 @@ export default function SessionsIndexPage() {
   const [previewText, setPreviewText] = useState("");
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Modal "Nova Sessão"
+  const [isNewSessionOpen, setIsNewSessionOpen] = useState(false);
+  const [newSessionPatientId, setNewSessionPatientId] = useState("");
+  const [newSessionConsented, setNewSessionConsented] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newSessionError, setNewSessionError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -84,6 +93,32 @@ export default function SessionsIndexPage() {
     void load();
   }, []);
 
+  async function createSession() {
+    if (!newSessionPatientId) {
+      setNewSessionError("Selecione um paciente.");
+      return;
+    }
+    setIsCreating(true);
+    setNewSessionError(null);
+    try {
+      const res = await fetch(`/api/patients/${newSessionPatientId}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consented: newSessionConsented }),
+      });
+      const json = (await res.json()) as { session?: { id: string }; error?: string };
+      if (!res.ok || !json.session?.id) {
+        setNewSessionError(json.error ?? "Erro ao criar sessão.");
+        return;
+      }
+      router.push(`/sessions/${json.session.id}`);
+    } catch {
+      setNewSessionError("Erro de conexão.");
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
   async function openPreview(session: Session & { patient_name?: string }) {
     setPreviewTitle(session.patient_name ?? "Paciente");
     setPreviewText("");
@@ -113,23 +148,35 @@ export default function SessionsIndexPage() {
   return (
     <div className="patients-page space-y-0">
       <div className="page-header">
-        <div className="title-row">
-          <svg
-            className="title-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-            style={{ width: "40px", height: "40px" }}
+        <div className="title-row" style={{ justifyContent: "space-between" }}>
+          <div className="flex items-center gap-3">
+            <svg
+              className="title-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              style={{ width: "40px", height: "40px" }}
+            >
+              <rect x="3" y="4" width="18" height="16" rx="2" stroke="#0f766e" strokeWidth="2" />
+              <path d="M7 8h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M7 12h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M7 16h6" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <h1 className="page-title" style={{ fontSize: "32px" }}>
+              Sessões
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setNewSessionPatientId(""); setNewSessionConsented(true); setNewSessionError(null); setIsNewSessionOpen(true); }}
+            className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-teal-700 active:bg-teal-800 transition-colors"
           >
-            <rect x="3" y="4" width="18" height="16" rx="2" stroke="#0f766e" strokeWidth="2" />
-            <path d="M7 8h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M7 12h10" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M7 16h6" stroke="#0f766e" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <h1 className="page-title" style={{ fontSize: "32px" }}>
-            Sessões
-          </h1>
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+            Nova Sessão
+          </button>
         </div>
         <div className="mt-1 text-sm text-muted-foreground">Lista recente (por paciente)</div>
       </div>
@@ -232,8 +279,74 @@ export default function SessionsIndexPage() {
         </CardContent>
       </Card>
 
-      {isPreviewOpen ? (
+      {/* Modal Nova Sessão */}
+      {isNewSessionOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <div className="text-lg font-semibold text-foreground">Nova Sessão</div>
+              <button
+                type="button"
+                onClick={() => setIsNewSessionOpen(false)}
+                className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+              >
+                Fechar
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Paciente *</label>
+                <select
+                  value={newSessionPatientId}
+                  onChange={(e) => setNewSessionPatientId(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="">Selecione um paciente...</option>
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>{p.full_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="consented"
+                  checked={newSessionConsented}
+                  onChange={(e) => setNewSessionConsented(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                />
+                <label htmlFor="consented" className="text-sm text-foreground">
+                  Paciente consentiu com a sessão
+                </label>
+              </div>
+              {newSessionError ? (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+                  {newSessionError}
+                </div>
+              ) : null}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsNewSessionOpen(false)}
+                  className="rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void createSession()}
+                  disabled={isCreating}
+                  className="rounded-full bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60 transition-colors"
+                >
+                  {isCreating ? "Criando..." : "Iniciar Sessão"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isPreviewOpen ? (        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <div>
