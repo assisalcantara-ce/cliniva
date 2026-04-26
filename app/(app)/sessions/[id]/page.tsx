@@ -755,6 +755,19 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
                 </button>
               )}
             </div>
+
+            {/* Aviso: novo trecho adicionado após análise completa */}
+            {insightsMode === "full" && insights && !isGenerating && chunks.length > (chunksAtLastFullAnalysis ?? 0) && (
+              <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 shrink-0 text-amber-500" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                </svg>
+                <span>
+                  <strong>Novo trecho inserido.</strong> Refaça a análise completa para incluí-lo nos insights.
+                </span>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="admin-card__content flex min-h-0 flex-1 flex-col overflow-hidden">
             <InsightPanelHeader
