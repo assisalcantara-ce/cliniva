@@ -32,3 +32,9 @@
 - Client-side image compression converts uploads to WebP before sending.
 - Admin login is isolated from the admin layout shell.
 - UI copy standardized with proper Portuguese accents.
+
+## Daily Log (2026-02-19)
+- Confirmed therapist AI key encryption flow exists in code; requires applying migration 019 in Supabase.
+- Identified missing consent audit: `consent_logs` table and write path are not implemented yet.
+- Audio/STT pipeline and recording UI are still pending (v2+).
+- AI provider is per-therapist for insights, but embeddings and header status still use server env key.

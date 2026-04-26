@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { parseAuthToken } from "@/lib/auth";
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,66 +13,24 @@ const ticketSchema = z.object({
   priority: z.enum(["low", "medium", "high", "critical"]),
 });
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-async function resolveUserId(supabase: ReturnType<typeof createSupabaseAdminClient>, user: { userId: string; email: string; name?: string }) {
-  if (UUID_REGEX.test(user.userId)) {
-    return user.userId;
-  }
-
-  const { data: existingUser, error: existingError } = await supabase
+async function resolveUserId(supabase: ReturnType<typeof createSupabaseAdminClient>, therapistId: string) {
+  const { data, error } = await supabase
     .from("users")
     .select("id")
-    .eq("email", user.email)
+    .eq("therapist_id", therapistId)
+    .limit(1)
     .maybeSingle();
 
-  if (existingError) {
-    throw new Error(existingError.message);
-  }
-
-  if (existingUser?.id) {
-    return existingUser.id as string;
-  }
-
-  const therapistId = await getOrCreateTherapistId({
-    displayName: user.name ?? "Dra. Cristiane",
-  });
-
-  const { data: createdUser, error: createError } = await supabase
-    .from("users")
-    .insert({
-      therapist_id: therapistId,
-      email: user.email,
-      password_hash: "mock",
-      is_active: true,
-    })
-    .select("id")
-    .single();
-
-  if (createError) {
-    throw new Error(createError.message);
-  }
-
-  return createdUser.id as string;
+  if (error) throw new Error(error.message);
+  if (!data?.id) throw new Error("Usuário não encontrado");
+  return data.id as string;
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const authToken = req.cookies.get("auth_token")?.value;
-    if (!authToken) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    const user = parseAuthToken(authToken);
-    if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
-    if (!user.email) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    const resolvedUserId = await resolveUserId(supabase, user);
+    const resolvedUserId = await resolveUserId(supabase, therapistId);
     const { data, error } = await supabase
       .from("support_tickets")
       .select("id, title, description, category, priority, status, created_at")
@@ -103,15 +60,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authToken = req.cookies.get("auth_token")?.value;
-    if (!authToken) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    const user = parseAuthToken(authToken);
-    if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
+    const therapistId = getTherapistIdFromRequest(req);
 
     const body = await req.json();
     const parsed = ticketSchema.safeParse(body);
@@ -123,10 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createSupabaseAdminClient();
-    if (!user.email) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    const resolvedUserId = await resolveUserId(supabase, user);
+    const resolvedUserId = await resolveUserId(supabase, therapistId);
     const { data, error } = await supabase
       .from("support_tickets")
       .insert({

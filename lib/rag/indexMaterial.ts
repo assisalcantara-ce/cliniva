@@ -9,17 +9,18 @@ export async function indexMaterial(params: {
   rawText: string;
   filename?: string;
   source: "manual" | "upload";
+  apiKey?: string;
 }): Promise<{ chunksCreated: number }> {
   const text = params.rawText.replace(/\r\n/g, "\n").trim();
   const chunks = chunkText({ text });
   if (chunks.length === 0) {
-    throw new Error("Texto muito curto para indexação.");
+    return { chunksCreated: 0 };
   }
 
   const supabase = createSupabaseAdminClient();
   const rows: Array<Record<string, unknown>> = [];
   for (const c of chunks) {
-    const embedding = await embedText({ input: c.text });
+    const embedding = await embedText({ input: c.text, apiKey: params.apiKey });
     rows.push({
       material_id: params.materialId,
       chunk_index: c.index,

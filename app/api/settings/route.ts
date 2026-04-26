@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { encryptOpenAiKey } from "@/lib/ai/openaiKey";
 
@@ -32,11 +32,9 @@ const settingsSchema = z.object({
   remove_openai_key: z.boolean().optional(),
 });
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const therapistResult = await supabase
@@ -87,6 +85,7 @@ export async function GET() {
     const openaiKey = therapist.openai_api_key_encrypted ?? therapist.openai_api_key ?? "";
     const ai = {
       has_key: Boolean(openaiKey),
+      has_groq: Boolean(process.env.GROQ_API_KEY),
       key_last4: therapist.openai_api_key_last4 ?? (openaiKey ? openaiKey.slice(-4) : ""),
       key_added_at: therapist.openai_key_added_at ?? undefined,
     };
@@ -110,9 +109,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     // Update therapist record

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -19,9 +19,7 @@ const deleteSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const url = new URL(req.url);
@@ -69,9 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const { data, error } = await supabase
@@ -108,9 +104,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const { error } = await supabase

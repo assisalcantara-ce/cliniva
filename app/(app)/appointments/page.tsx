@@ -94,9 +94,10 @@ function getCalendarDays(monthDate: Date) {
 
   const totalCells = Math.ceil(days.length / 7) * 7;
   const lastDay = days[days.length - 1]?.date ?? end;
-  for (let i = days.length; i < totalCells; i += 1) {
+  const originalLength = days.length;
+  for (let i = originalLength; i < totalCells; i += 1) {
     const next = new Date(lastDay);
-    next.setDate(lastDay.getDate() + (i - days.length + 1));
+    next.setDate(lastDay.getDate() + (i - originalLength + 1));
     days.push({ date: next, inMonth: false });
   }
 

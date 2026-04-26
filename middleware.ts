@@ -7,6 +7,14 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/admin/login',
   '/api/seed/therapist',
+  '/checkout',
+  '/checkout/pendente',
+  '/checkout/sucesso',
+  '/api/checkout',
+  '/api/webhook/asaas',
+  '/planos',
+  '/termos',
+  '/privacidade',
 ];
 
 // Rotas protegidas (requerem autenticação de terapeuta)
@@ -35,8 +43,10 @@ const ADMIN_PROTECTED_ROUTES = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Verificar se é rota pública
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route);
+  // Verificar se é rota pública (exata ou prefixo para /checkout/*)
+  const isPublicRoute = PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + '/'),
+  );
   if (isPublicRoute) {
     return NextResponse.next();
   }

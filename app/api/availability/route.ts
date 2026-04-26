@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -24,11 +24,9 @@ function toMinutes(timeStr: string) {
   return Number(hh) * 60 + Number(mm);
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const { data, error } = await supabase
@@ -70,9 +68,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const deleteResult = await supabase

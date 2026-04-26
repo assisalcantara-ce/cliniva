@@ -19,10 +19,14 @@ export type ModerationResult = {
 export async function moderateText(params: {
   input: string;
   apiKey?: string;
-  provider?: "openai" | "mock";
+  provider?: "openai" | "groq" | "mock";
 }): Promise<ModerationResult> {
-  const provider = params.provider ?? (process.env.AI_PROVIDER === "mock" ? "mock" : "openai");
-  if (provider === "mock") {
+  // Use real OpenAI moderation only when provider is openai AND a key is available
+  const useOpenAI =
+    params.provider === "openai" &&
+    (params.apiKey || process.env.OPENAI_API_KEY);
+
+  if (!useOpenAI) {
     const t = params.input.toLowerCase();
     const selfHarm = /(suicid|tirar a (pr[oó]pria )?vida|me matar|matar[- ]me|autoagress)/.test(
       t,
@@ -42,7 +46,7 @@ export async function moderateText(params: {
   const response = await openaiPostJson<ModerationResponse>({
     path: "/moderations",
     body: {
-      model: "omni-moderation-latest",
+      model: process.env.OPENAI_MODERATION_MODEL ?? "omni-moderation-latest",
       input: params.input,
     },
     timeoutMs: 30_000,

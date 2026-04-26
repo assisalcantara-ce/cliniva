@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { generateInsightsFromTranscript } from "@/lib/ai/generateInsights";
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getPatientMemory, upsertPatientMemory } from "@/lib/db/patientMemory";
+import { buildUpdatedPatientMemory } from "@/lib/ai/updatePatientMemory";
+import { getTherapistOpenAiKey } from "@/lib/db/therapist";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -82,12 +85,33 @@ export async function POST(
       );
     }
 
-    const { package: pkg, fallbackReason } = await generateInsightsFromTranscript({
+    const therapistId = getTherapistIdFromRequest(req);
+
+    // Busca patient_id da sessão para ler/atualizar memória clínica
+    const sessionResult = await supabase
+      .from("sessions")
+      .select("patient_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+
+    const patientId: string | null =
+      sessionResult.data && typeof sessionResult.data.patient_id === "string"
+        ? sessionResult.data.patient_id
+        : null;
+
+    // Lê memória clínica anterior (não-bloqueante)
+    const memoryRow = patientId
+      ? await getPatientMemory({ patientId, therapistId })
+      : null;
+    const patientMemory = memoryRow?.summary ?? undefined;
+
+    const { package: pkg, fallbackReason, provider, isFullAI } = await generateInsightsFromTranscript({
       chunks,
+      therapistId,
+      patientMemory,
     });
 
     if (fallbackReason) {
-      const therapistId = await getOrCreateTherapistId({ displayName: "Dra. Cristiane" });
       await logAiFallback({
         req,
         therapistId,
@@ -97,6 +121,14 @@ export async function POST(
     }
 
     const title = `Suporte IA - ${new Date().toISOString().slice(0, 10)}`;
+
+    // Arquiva análise anterior antes de inserir a nova (preserva histórico)
+    await supabase
+      .from("session_insights")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("session_id", sessionId)
+      .is("archived_at", null);
+
     const rows = [
       { kind: "themes", content_json: { themes: pkg.themes } },
       { kind: "questions", content_json: { questions: pkg.questions } },
@@ -124,10 +156,32 @@ export async function POST(
       );
     }
 
+    // Atualiza memória clínica do paciente em background (não-bloqueante)
+    // Apenas quando a IA rodou com qualidade (OpenAI ou Groq), não mock
+    if (patientId && provider !== "mock") {
+      const { apiKey } = await getTherapistOpenAiKey({ therapistId }).catch(() => ({ apiKey: undefined }));
+      buildUpdatedPatientMemory({
+        previous: patientMemory ?? "",
+        newInsights: pkg,
+        apiKey,
+      })
+        .then((newSummary) => {
+          if (newSummary) {
+            return upsertPatientMemory({ patientId: patientId!, therapistId, summary: newSummary });
+          }
+        })
+        .catch((err: unknown) => {
+          console.error("[generate] updatePatientMemory error:", err instanceof Error ? err.message : err);
+        });
+    }
+
     return NextResponse.json(
       {
         package: pkg,
         insights: insertResult.data ?? [],
+        provider,
+        isFullAI,
+        patientMemory: patientMemory ?? null,
         fallback: fallbackReason ? { used: true, reason: fallbackReason } : { used: false },
       },
       { status: 200 },

@@ -17,11 +17,16 @@ export function chunkText(params: {
     text,
     targetSizeChars = 1000,
     overlapChars = 160,
-    minChunkChars = 200,
+    minChunkChars = 20,
   } = params;
 
   const normalized = text.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
+
+  // Texto mais curto que o tamanho alvo: retorna como chunk único
+  if (normalized.length <= targetSizeChars) {
+    return [{ index: 0, text: normalized, start: 0, end: normalized.length }];
+  }
 
   const chunks: TextChunk[] = [];
   let cursor = 0;

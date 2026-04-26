@@ -35,15 +35,36 @@ function ChevronDown(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export function AppTopbar({
-  aiOnline,
+  aiMode,
   onOpenSidebar,
 }: {
-  aiOnline: boolean;
+  aiMode: "openai" | "groq" | "offline";
   onOpenSidebar: () => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const title = useMemo(() => titleFromPath(pathname), [pathname]);
+
+  const aiLabel =
+    aiMode === "openai"
+      ? "Copiloto Premium ativado"
+      : aiMode === "groq"
+      ? "Copiloto gratuito ativado"
+      : "Copiloto offline";
+
+  const aiColors =
+    aiMode === "openai"
+      ? "border-green-300 bg-green-50 text-green-900"
+      : aiMode === "groq"
+      ? "border-blue-300 bg-blue-50 text-blue-900"
+      : "border-red-300 bg-red-50 text-red-900";
+
+  const dotColor =
+    aiMode === "openai"
+      ? "bg-green-500"
+      : aiMode === "groq"
+      ? "bg-blue-500"
+      : "bg-red-500";
 
   async function handleLogout() {
     try {
@@ -74,13 +95,11 @@ export function AppTopbar({
         <div
           className={cn(
             "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm shadow-black/5",
-            aiOnline
-              ? "border-green-300 bg-green-50 text-green-900"
-              : "border-red-300 bg-red-50 text-red-900"
+            aiColors,
           )}
         >
-          <div className={cn("h-2 w-2 rounded-full", aiOnline ? "bg-green-500" : "bg-red-500")} />
-          <span>{aiOnline ? "IA online" : "IA offline"}</span>
+          <div className={cn("h-2 w-2 rounded-full", dotColor)} />
+          <span>{aiLabel}</span>
         </div>
 
         <details className="relative">

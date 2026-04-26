@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -45,9 +45,7 @@ export async function PATCH(
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const updateResult = await supabase

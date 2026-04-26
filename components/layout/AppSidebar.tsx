@@ -59,26 +59,15 @@ export function AppSidebar({ open, onClose }: { open: boolean; onClose: () => vo
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="px-6 py-6">
+        <div className="px-6 py-6 flex justify-center">
           <Image
-            src="/img/Logor.png"
+            src="/img/logo3.png"
             alt="Cliniva"
-            width={220}
-            height={56}
+            width={301}
+            height={77}
             priority
-            className="h-14 w-auto"
+            className="h-[77px] w-auto"
           />
-          <div className="mt-1 text-xs text-white/70">Copiloto de Terapia</div>
-
-          <div className="mt-5">
-            <div className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-white/90 ring-1 ring-white/10">
-              <SearchIcon className="h-4 w-4 text-white/70" />
-              <input
-                placeholder="Buscar"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-white/50"
-              />
-            </div>
-          </div>
         </div>
 
         <nav className="px-3">

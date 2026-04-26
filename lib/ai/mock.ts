@@ -132,6 +132,14 @@ export function generateMockInsightsFromTranscript(params: {
     },
   ];
 
+  const suggested_next_steps = [
+    {
+      action: "Explorar as situações mencionadas com mais profundidade",
+      rationale: "Pode revelar padrões recorrentes relevantes para o processo terapêutico.",
+      type: "exploration" as const,
+    },
+  ];
+
   const candidate: unknown = {
     themes,
     questions,
@@ -139,6 +147,7 @@ export function generateMockInsightsFromTranscript(params: {
     risks,
     summary,
     next_steps,
+    suggested_next_steps,
   };
 
   return { candidate, inputModerationFlagged: flags.selfHarm || flags.violence };

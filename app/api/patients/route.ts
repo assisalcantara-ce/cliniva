@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -48,9 +48,7 @@ const createPatientSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const selectWithStatus = `
@@ -121,9 +119,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     // Get the next patient number for this therapist

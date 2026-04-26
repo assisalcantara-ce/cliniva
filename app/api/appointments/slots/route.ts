@@ -7,7 +7,7 @@ import {
   type AvailabilityBlock,
   type AvailabilityRule,
 } from "@/lib/db/appointments";
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -21,9 +21,7 @@ export async function GET(req: NextRequest) {
     const startDate = dateSchema.parse(url.searchParams.get("start_date"));
     const endDate = dateSchema.parse(url.searchParams.get("end_date"));
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const { data: rules, error: rulesError } = await supabase

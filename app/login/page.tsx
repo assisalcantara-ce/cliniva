@@ -244,13 +244,23 @@ export default function LoginPage() {
                 Sistema de gerenciamento de sessões de terapia<br />
                 <span className="font-medium">© 2025 Therapy Copilot</span>
               </p>
-              <div className="mt-3 text-center">
-                <a
-                  href="/admin/login"
-                  className="text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline transition-colors"
-                >
-                  Acesso do administrador
-                </a>
+              <div className="mt-3 text-center space-y-2">
+                <div>
+                  <a
+                    href="/"
+                    className="text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline transition-colors"
+                  >
+                    ← Voltar ao site
+                  </a>
+                </div>
+                <div>
+                  <a
+                    href="/admin/login"
+                    className="text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline transition-colors"
+                  >
+                    Acesso do administrador
+                  </a>
+                </div>
               </div>
             </div>
           </div>

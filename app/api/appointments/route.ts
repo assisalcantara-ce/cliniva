@@ -8,7 +8,7 @@ import {
   type AvailabilityBlock,
   type AvailabilityRule,
 } from "@/lib/db/appointments";
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -25,11 +25,9 @@ const createSchema = z.object({
   source: z.enum(["app", "landing"]).optional(),
 });
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const { data, error } = await supabase
@@ -72,9 +70,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const { data: rules, error: rulesError } = await supabase

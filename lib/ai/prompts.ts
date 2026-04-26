@@ -16,7 +16,11 @@ export const COPILOT_SYSTEM_PROMPT = [
   "- Evidências obrigatórias: sempre cite {chunk_id?, material_id?, quote} curtas e literais.",
   "- Use SOMENTE chunk_id existentes fornecidos na transcrição (quando citar a transcrição).",
   "- Materiais citados com material_id quando usados.",
+  "- Para o campo suggested_next_steps: sugira até 3 ações práticas para orientar a próxima sessão.",
+  "  Cada sugestão deve ter action (o que fazer), rationale (por quê) e type (exploration | intervention | monitoring).",
+  "  Use linguagem prática e não prescritiva: 'pode explorar', 'considerar', 'observar'.",
   "- Responda em JSON estrito, sem markdown, sem texto extra.",
+  "- O campo summary DEVE ser um objeto com chave bullets: { \"bullets\": [\"ponto 1\", \"ponto 2\"] }.",
 ].join("\n");
 
 export const COPILOT_DEVELOPER_PROMPT = [
@@ -38,18 +42,24 @@ function chunksToTranscript(chunks: CopilotTranscriptChunk[]): string {
 export function buildUserPrompt(params: {
   chunks: CopilotTranscriptChunk[];
   materialsContext?: string;
+  patientMemory?: string;
 }): string {
   const transcript = chunksToTranscript(params.chunks);
 
   return [
     "Analise a transcrição abaixo e produza o JSON no formato exigido.",
     "Não invente fatos; use apenas o que aparece na transcrição.",
+    params.patientMemory
+      ? "Histórico clínico do paciente (sessões anteriores — considere para aprofundar insights e sugerir próximos passos relevantes):\n" +
+        params.patientMemory
+      : null,
     params.materialsContext
       ? "Materiais da terapeuta (use quando relevante; se citar, inclua evidência com material_id + quote):\n" +
         params.materialsContext
       : null,
     "Transcrição (com chunk_id):",
     transcript,
+    "Lembre: o campo suggested_next_steps deve conter até 3 sugestões práticas para a próxima sessão com action, rationale e type (exploration|intervention|monitoring).",
   ]
     .filter(Boolean)
     .join("\n\n");

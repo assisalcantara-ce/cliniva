@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getOrCreateTherapistId } from "@/lib/db/therapist";
+import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -13,20 +13,18 @@ const createSessionSchema = z.object({
 });
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
     const { id } = await params;
     const patientId = z.string().min(1).parse(id);
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const result = await supabase
       .from("sessions")
-      .select("id, patient_id, therapist_id, consented, consent_text, created_at")
+      .select("id, patient_id, therapist_id, consented, consent_text, created_at, patients(full_name)")
       .eq("therapist_id", therapistId)
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false });
@@ -38,7 +36,13 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ sessions: result.data ?? [] }, { status: 200 });
+    const patientName =
+      result.data?.[0] &&
+      typeof (result.data[0] as { patients?: { full_name?: unknown } }).patients?.full_name === "string"
+        ? String((result.data[0] as { patients?: { full_name?: unknown } }).patients?.full_name)
+        : null;
+
+    return NextResponse.json({ sessions: result.data ?? [], patient_name: patientName }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -61,9 +65,7 @@ export async function POST(
       );
     }
 
-    const therapistId = await getOrCreateTherapistId({
-      displayName: "Dra. Cristiane",
-    });
+    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
 
     const insertResult = await supabase

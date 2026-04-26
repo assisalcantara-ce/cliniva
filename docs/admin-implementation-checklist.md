@@ -4,6 +4,12 @@
 
 ---
 
+## 🗓️ Daily Notes (2026-02-19)
+- Aplicar migration 019 (openai_api_key_encrypted, openai_api_key_last4) no Supabase.
+- Implementar `consent_logs` (tabela + API) para auditoria de consentimento.
+- Pipeline de audio/STT e UI de gravacao ainda pendentes (fase 2).
+- Ajustar IA por terapeuta em embeddings e status do header (hoje usa chave do servidor).
+
 ## 📁 Arquivos Criados
 
 ### Documentação

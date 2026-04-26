@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getTherapistIdFromRequest } from "@/lib/auth";
+import { decryptOpenAiKey } from "@/lib/ai/openaiKey";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { indexMaterial } from "@/lib/rag/indexMaterial";
 import { extractTextFromPdf } from "@/lib/rag/extract/pdf";
@@ -60,6 +62,31 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createSupabaseAdminClient();
+    const therapistId = getTherapistIdFromRequest(req);
+
+    // Buscar chave OpenAI do therapist
+    const { data: therapist } = await supabase
+      .from("therapists")
+      .select("openai_api_key_encrypted, openai_api_key")
+      .eq("id", therapistId)
+      .single();
+
+    const encKey = (therapist as { openai_api_key_encrypted?: string | null; openai_api_key?: string | null } | null)?.openai_api_key_encrypted;
+    const legKey = (therapist as { openai_api_key_encrypted?: string | null; openai_api_key?: string | null } | null)?.openai_api_key;
+
+    let openaiApiKey: string | undefined;
+    if (encKey) {
+      openaiApiKey = decryptOpenAiKey(encKey);
+    } else if (legKey) {
+      openaiApiKey = legKey;
+    } else if (process.env.OPENAI_API_KEY) {
+      openaiApiKey = process.env.OPENAI_API_KEY;
+    } else {
+      return NextResponse.json(
+        { error: "Chave OpenAI não configurada. Acesse Configurações → IA para adicioná-la." },
+        { status: 422 },
+      );
+    }
 
     const filename = file.name;
     const title = parsed.data.title ?? safeBaseTitle(filename);
@@ -67,6 +94,7 @@ export async function POST(req: NextRequest) {
     const materialInsert = await supabase
       .from("materials")
       .insert({
+        therapist_id: therapistId,
         title,
         source: "upload",
         filename,
@@ -129,6 +157,7 @@ export async function POST(req: NextRequest) {
       rawText: extractedText,
       filename,
       source: "upload",
+      apiKey: openaiApiKey,
     });
 
     return NextResponse.json(
@@ -140,10 +169,17 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    const code = (error as { code?: string }).code;
+    if (code === "UNAUTHENTICATED" || code === "INVALID_TOKEN") {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    if (message.includes("429")) {
+      return NextResponse.json(
+        { error: "Cota da OpenAI esgotada. Acesse platform.openai.com → Billing para adicionar créditos." },
+        { status: 502 },
+      );
+    }
     const status = message.startsWith("OpenAI:") ? 502 : 500;
-    return NextResponse.json(
-      { error: "Falha ao enviar/indexar material. Tente novamente." },
-      { status },
-    );
+    return NextResponse.json({ error: message }, { status });
   }
 }

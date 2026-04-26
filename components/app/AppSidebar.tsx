@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -40,9 +41,15 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border-strong bg-sidebar md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col">
-      <div className="px-5 py-5">
-        <div className="text-sm font-semibold tracking-tight text-foreground">Cliniva</div>
-        <div className="mt-1 text-xs text-muted-foreground">Copiloto de Terapia</div>
+      <div className="px-5 py-5 flex justify-center">
+        <Image
+          src="/img/logo3.png"
+          alt="Cliniva"
+          width={231}
+          height={63}
+          priority
+          className="h-[63px] w-auto"
+        />
       </div>
 
       <nav className="flex-1 px-3">

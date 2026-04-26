@@ -43,6 +43,7 @@ type ModalState = {
   type: "success" | "error" | "warning" | "info";
   title: string;
   message: string;
+  onConfirm?: () => void;
 };
 
 const emptySettings: SettingsData = {
@@ -82,7 +83,6 @@ export default function SettingsPage() {
   const [currentTab, setCurrentTab] = useState("empresa");
   const [aiStatus, setAiStatus] = useState<AiStatus>({ has_key: false, key_last4: "" });
   const [openaiApiKey, setOpenaiApiKey] = useState("");
-  const [removeOpenaiKey, setRemoveOpenaiKey] = useState(false);
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
     type: "info",
@@ -113,7 +113,6 @@ export default function SettingsPage() {
           key_added_at: typeof data.ai?.key_added_at === "string" ? data.ai.key_added_at : undefined,
         });
         setOpenaiApiKey("");
-        setRemoveOpenaiKey(false);
       }
     } catch (err) {
       console.error("Erro ao carregar configurações:", err);
@@ -129,13 +128,37 @@ export default function SettingsPage() {
   function showModal(
     type: "success" | "error" | "warning" | "info",
     title: string,
-    message: string
+    message: string,
+    onConfirm?: () => void,
   ) {
-    setModal({ isOpen: true, type, title, message });
+    setModal({ isOpen: true, type, title, message, onConfirm });
   }
 
   function closeModal() {
-    setModal({ ...modal, isOpen: false });
+    setModal((prev) => ({ ...prev, isOpen: false, onConfirm: undefined }));
+  }
+
+  async function removeKeyNow() {
+    closeModal();
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...settings, remove_openai_key: true }),
+      });
+      if (res.ok) {
+        await loadSettings();
+        showModal("success", "Chave removida", "Sua chave OpenAI foi removida com sucesso.");
+      } else {
+        const json = (await res.json()) as { error?: string };
+        showModal("error", "Erro", json.error || "Falha ao remover a chave.");
+      }
+    } catch {
+      showModal("error", "Erro", "Falha ao remover a chave.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function loadImageFromFile(file: File) {
@@ -228,9 +251,6 @@ export default function SettingsPage() {
       if (openaiApiKey.trim()) {
         payload.openai_api_key = openaiApiKey.trim();
       }
-      if (removeOpenaiKey) {
-        payload.remove_openai_key = true;
-      }
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -240,7 +260,6 @@ export default function SettingsPage() {
       if (res.ok) {
         showModal("success", "Sucesso", "Configurações salvas com sucesso");
         setOpenaiApiKey("");
-        setRemoveOpenaiKey(false);
         await loadSettings();
       } else {
         const json = (await res.json()) as { error?: string };
@@ -321,7 +340,10 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="p-6">
               <p className="text-sm text-gray-700 mb-6">{modal.message}</p>
-              <Button onClick={closeModal} className="w-full bg-teal-600 hover:bg-teal-700">
+              <Button
+                onClick={() => { modal.onConfirm ? modal.onConfirm() : closeModal(); }}
+                className="w-full bg-teal-600 hover:bg-teal-700"
+              >
                 OK
               </Button>
             </CardContent>
@@ -697,7 +719,6 @@ export default function SettingsPage() {
                     value={openaiApiKey}
                     onChange={(e) => {
                       setOpenaiApiKey(e.target.value);
-                      if (removeOpenaiKey) setRemoveOpenaiKey(false);
                     }}
                     placeholder="sk-..."
                     className="control"
@@ -710,19 +731,17 @@ export default function SettingsPage() {
                     variant="secondary"
                     disabled={!aiStatus.has_key}
                     onClick={() => {
-                      setRemoveOpenaiKey(true);
                       showModal(
                         "warning",
                         "Remover chave",
-                        "A chave sera removida ao salvar as configuracoes."
+                        "A chave sera removida permanentemente. Deseja continuar?",
+                        removeKeyNow,
                       );
                     }}
                   >
                     Remover chave
                   </Button>
-                  <span className="text-xs text-slate-500">
-                    {removeOpenaiKey ? "Remocao pendente" : ""}
-                  </span>
+                  <span className="text-xs text-slate-500" />
                 </div>
 
               </CardContent>

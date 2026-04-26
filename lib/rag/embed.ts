@@ -2,7 +2,7 @@ import "server-only";
 
 import { openaiPostJson } from "@/lib/ai/openai";
 
-const EMBEDDING_MODEL = "text-embedding-3-small";
+const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small";
 const EXPECTED_DIMS = 1536;
 
 type EmbeddingsResponse = {
@@ -11,6 +11,7 @@ type EmbeddingsResponse = {
 
 export async function embedText(params: {
   input: string;
+  apiKey?: string;
 }): Promise<number[]> {
   const res = await openaiPostJson<EmbeddingsResponse>({
     path: "/embeddings",
@@ -19,6 +20,7 @@ export async function embedText(params: {
       input: params.input,
     },
     timeoutMs: 45_000,
+    apiKey: params.apiKey,
   });
 
   const vector = res.data?.[0]?.embedding;

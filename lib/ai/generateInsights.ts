@@ -4,7 +4,8 @@ import { z } from "zod";
 
 import { moderateText, type ModerationResult } from "@/lib/ai/moderation";
 import { openaiPostJson } from "@/lib/ai/openai";
-import { getOrCreateTherapistId, getTherapistOpenAiKey } from "@/lib/db/therapist";
+import { groqChatJson, getGroqApiKey, type GroqChatMessage } from "@/lib/ai/groq";
+import { getTherapistOpenAiKey } from "@/lib/db/therapist";
 import {
   buildUserPrompt,
   COPILOT_DEVELOPER_PROMPT,
@@ -13,75 +14,153 @@ import {
 import { generateMockInsightsFromTranscript, getAiProvider } from "@/lib/ai/mock";
 import { retrieveMaterialChunks } from "@/lib/rag/retrieve";
 
-const evidenceSchema = z
-  .object({
-    chunk_id: z.string().min(1).optional(),
-    material_id: z.string().min(1).optional(),
-    quote: z.string().trim().min(1).max(240),
-  })
-  .refine((v) => Boolean(v.chunk_id || v.material_id), {
-    message: "Evidência deve incluir chunk_id ou material_id",
-  });
+const MAIN_MODEL = process.env.OPENAI_MAIN_MODEL ?? "gpt-4.1";
+const CHEAP_MODEL = process.env.OPENAI_CHEAP_MODEL ?? "gpt-4.1-mini";
+const GROQ_MODEL = process.env.GROQ_MAIN_MODEL ?? "llama-3.3-70b-versatile";
+
+const evidenceSchema = z.object({
+  chunk_id: z.string().min(1).optional(),
+  material_id: z.string().min(1).optional(),
+  quote: z.string().trim().min(1).max(240),
+});
 
 export const insightsSchema = z.object({
-  themes: z
-    .array(
-      z.object({
-        title: z.string().trim().min(1),
-        description: z.string().trim().min(1),
-        evidence: z.array(evidenceSchema).min(1),
-      }),
-    )
-    .default([]),
-  questions: z
-    .array(
-      z.object({
-        question: z.string().trim().min(1),
-        rationale: z.string().trim().min(1),
-        evidence: z.array(evidenceSchema).min(1),
-      }),
-    )
-    .default([]),
-  hypotheses: z
-    .array(
-      z.object({
-        hypothesis: z.string().trim().min(1),
-        confidence: z.enum(["low", "med", "high"]),
-        evidence: z.array(evidenceSchema).min(1),
-      }),
-    )
-    .default([]),
-  risks: z
-    .array(
-      z.object({
-        type: z.string().trim().min(1),
-        note: z.string().trim().min(1),
-        urgency: z.enum(["low", "med", "high"]),
-        evidence: z.array(evidenceSchema).min(1),
-      }),
-    )
-    .default([]),
-  summary: z.object({
-    bullets: z.array(z.string().trim().min(1)).max(12),
-  }),
-  next_steps: z
-    .array(
-      z.object({
-        step: z.string().trim().min(1),
-        rationale: z.string().trim().min(1),
-      }),
-    )
-    .default([]),
+  themes: z.preprocess(
+    (v) => {
+      if (!Array.isArray(v)) return [];
+      return v.map((item) =>
+        typeof item === "string"
+          ? { title: item, description: item, evidence: [] }
+          : item,
+      );
+    },
+    z
+      .array(
+        z.object({
+          title: z.string().trim().min(1),
+          description: z.string().trim().min(1),
+          evidence: z.array(evidenceSchema).default([]),
+        }),
+      )
+      .default([]),
+  ),
+  questions: z.preprocess(
+    (v) => {
+      if (!Array.isArray(v)) return [];
+      return v.map((item) =>
+        typeof item === "string"
+          ? { question: item, rationale: "", evidence: [] }
+          : item,
+      );
+    },
+    z
+      .array(
+        z.object({
+          question: z.string().trim().min(1),
+          rationale: z.string().trim().min(1),
+          evidence: z.array(evidenceSchema).default([]),
+        }),
+      )
+      .default([]),
+  ),
+  hypotheses: z.preprocess(
+    (v) => {
+      if (!Array.isArray(v)) return [];
+      return v.map((item) =>
+        typeof item === "string"
+          ? { hypothesis: item, confidence: "low" as const, evidence: [] }
+          : item,
+      );
+    },
+    z
+      .array(
+        z.object({
+          hypothesis: z.string().trim().min(1),
+          confidence: z.enum(["low", "med", "high"]),
+          evidence: z.array(evidenceSchema).default([]),
+        }),
+      )
+      .default([]),
+  ),
+  risks: z.preprocess(
+    (v) => {
+      if (!Array.isArray(v)) return [];
+      return v.map((item) =>
+        typeof item === "string"
+          ? { type: item, note: item, urgency: "low" as const, evidence: [] }
+          : item,
+      );
+    },
+    z
+      .array(
+        z.object({
+          type: z.string().trim().min(1),
+          note: z.string().trim().min(1),
+          urgency: z.enum(["low", "med", "high"]),
+          evidence: z.array(evidenceSchema).default([]),
+        }),
+      )
+      .default([]),
+  ),
+  summary: z.preprocess(
+    (v) => {
+      if (Array.isArray(v)) return { bullets: v.filter((s) => typeof s === "string") };
+      if (typeof v === "object" && v !== null) return v;
+      if (typeof v === "string") return { bullets: v.split("\n").map((s) => s.trim()).filter(Boolean) };
+      return { bullets: [] };
+    },
+    z.object({
+      bullets: z.array(z.string().trim().min(1)).max(12),
+    }),
+  ),
+  next_steps: z.preprocess(
+    (v) => {
+      if (!Array.isArray(v)) return [];
+      return v.map((item) =>
+        typeof item === "string" ? { step: item, rationale: "" } : item,
+      );
+    },
+    z
+      .array(
+        z.object({
+          step: z.string().trim().min(1),
+          rationale: z.string().trim().min(1),
+        }),
+      )
+      .default([]),
+  ),
+  suggested_next_steps: z.preprocess(
+    (v) => {
+      if (!Array.isArray(v)) return [];
+      return v.map((item) =>
+        typeof item === "string"
+          ? { action: item, rationale: "", type: "exploration" as const }
+          : item,
+      );
+    },
+    z
+      .array(
+        z.object({
+          action: z.string().trim().min(1),
+          rationale: z.string().trim().min(1),
+          type: z.enum(["exploration", "intervention", "monitoring"]),
+        }),
+      )
+      .max(3)
+      .default([]),
+  ),
 });
 
 export type InsightsPackage = z.infer<typeof insightsSchema>;
 
-type FallbackReason = "missing_key" | "quota";
+type FallbackReason = "missing_key" | "quota" | "groq_rate_limit";
 
 export type GenerateInsightsResult = {
   package: InsightsPackage;
   inputModerationFlagged: boolean;
-  provider: "openai" | "mock";
+  provider: "openai" | "groq" | "mock";
+  /** true = OpenAI completo (RAG + embeddings + análise profunda) */
+  isFullAI: boolean;
   fallbackReason?: FallbackReason;
 };
 
@@ -99,7 +178,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
           description: { type: "string" },
           evidence: {
             type: "array",
-            minItems: 1,
             items: {
               type: "object",
               additionalProperties: false,
@@ -109,7 +187,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
                 quote: { type: "string" },
               },
               required: ["quote"],
-              anyOf: [{ required: ["chunk_id"] }, { required: ["material_id"] }],
             },
           },
         },
@@ -126,7 +203,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
           rationale: { type: "string" },
           evidence: {
             type: "array",
-            minItems: 1,
             items: {
               type: "object",
               additionalProperties: false,
@@ -136,7 +212,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
                 quote: { type: "string" },
               },
               required: ["quote"],
-              anyOf: [{ required: ["chunk_id"] }, { required: ["material_id"] }],
             },
           },
         },
@@ -153,7 +228,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
           confidence: { type: "string", enum: ["low", "med", "high"] },
           evidence: {
             type: "array",
-            minItems: 1,
             items: {
               type: "object",
               additionalProperties: false,
@@ -163,7 +237,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
                 quote: { type: "string" },
               },
               required: ["quote"],
-              anyOf: [{ required: ["chunk_id"] }, { required: ["material_id"] }],
             },
           },
         },
@@ -181,7 +254,6 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
           urgency: { type: "string", enum: ["low", "med", "high"] },
           evidence: {
             type: "array",
-            minItems: 1,
             items: {
               type: "object",
               additionalProperties: false,
@@ -191,7 +263,7 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
                 quote: { type: "string" },
               },
               required: ["quote"],
-              anyOf: [{ required: ["chunk_id"] }, { required: ["material_id"] }],
+
             },
           },
         },
@@ -221,8 +293,22 @@ const INSIGHTS_JSON_SCHEMA: Record<string, unknown> = {
         required: ["step", "rationale"],
       },
     },
+    suggested_next_steps: {
+      type: "array",
+      maxItems: 3,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          action: { type: "string" },
+          rationale: { type: "string" },
+          type: { type: "string", enum: ["exploration", "intervention", "monitoring"] },
+        },
+        required: ["action", "rationale", "type"],
+      },
+    },
   },
-  required: ["themes", "questions", "hypotheses", "risks", "summary", "next_steps"],
+  required: ["themes", "questions", "hypotheses", "risks", "summary", "next_steps", "suggested_next_steps"],
 };
 
 type TranscriptChunk = {
@@ -357,13 +443,25 @@ function buildMockInsights(
 
 export async function generateInsightsFromTranscript(params: {
   chunks: TranscriptChunk[];
+  therapistId: string;
+  patientMemory?: string;
 }): Promise<GenerateInsightsResult> {
-  const therapistId = await getOrCreateTherapistId({ displayName: "Dra. Cristiane" });
-  const { apiKey: therapistApiKey } = await getTherapistOpenAiKey({ therapistId });
+  const { apiKey: therapistApiKey } = await getTherapistOpenAiKey({ therapistId: params.therapistId });
+  const groqKey = getGroqApiKey();
   const envProvider = getAiProvider();
-  const provider = envProvider === "mock" ? "mock" : therapistApiKey ? "openai" : "mock";
+
+  // Prioridade: openai (chave do tenant) > groq (fallback gratuito) > mock
+  const provider =
+    envProvider === "mock"
+      ? "mock"
+      : therapistApiKey
+      ? "openai"
+      : groqKey
+      ? "groq"
+      : "mock";
+
   const fallbackReason: FallbackReason | undefined =
-    envProvider === "mock" ? undefined : therapistApiKey ? undefined : "missing_key";
+    envProvider === "mock" || therapistApiKey ? undefined : "missing_key";
 
   const transcript = chunksToTranscript(params.chunks);
   let inputModeration: ModerationResult;
@@ -403,7 +501,88 @@ export async function generateInsightsFromTranscript(params: {
       throw new Error("AI output failed moderation");
     }
 
-    return { package: pkg, inputModerationFlagged, provider: "mock", fallbackReason };
+    return { package: pkg, inputModerationFlagged, provider: "mock", isFullAI: false, fallbackReason };
+  }
+
+  // ── GROQ (fallback gratuito — modo degradado: sem RAG, sem embeddings) ───
+  if (provider === "groq") {
+    const groqApiKey = groqKey!;
+
+    // RAG desativado no modo Groq (embeddings requerem OpenAI)
+    const userPrompt = buildUserPrompt({
+      chunks: params.chunks,
+      materialsContext: undefined,
+      patientMemory: params.patientMemory?.trim().length ? params.patientMemory : undefined,
+    });
+
+    const groqMessages: GroqChatMessage[] = [
+      {
+        role: "system",
+        content:
+          systemPrompt +
+          "\n\nRetorne SOMENTE um objeto JSON válido seguindo o schema especificado.",
+      },
+      {
+        role: "user",
+        content:
+          userPrompt +
+          "\n\nIMPORTANTE: Retorne SOMENTE um objeto JSON válido (sem markdown, sem código).",
+      },
+    ];
+
+    try {
+      const responseText = await groqChatJson({
+        model: GROQ_MODEL,
+        messages: groqMessages,
+        temperature: 0.2,
+        apiKey: groqApiKey,
+      });
+
+      const cleaned = stripCodeFences(responseText);
+      let parsedJson: unknown;
+      try {
+        parsedJson = JSON.parse(cleaned) as unknown;
+      } catch {
+        throw new Error("Groq returned invalid JSON");
+      }
+
+      const pkg = insightsSchema.parse(parsedJson);
+      const allowedChunkIds = new Set(params.chunks.map((c) => c.id));
+      validateEvidenceChunkIds(pkg, allowedChunkIds);
+
+      const outputModeration = await moderateText({
+        input: packageToModerationText(pkg),
+        provider: "mock",
+      });
+      if (outputModeration.flagged) {
+        throw new Error("AI output failed moderation");
+      }
+
+      return {
+        package: pkg,
+        inputModerationFlagged: inputModeration.flagged,
+        provider: "groq",
+        isFullAI: false,
+        fallbackReason,
+      };
+    } catch (err) {
+      // Rate limit do Groq → mock com aviso
+      const msg = err instanceof Error ? err.message : "";
+      if (/rate.?limit|429|too many/i.test(msg)) {
+        const { package: mockPkg, inputModerationFlagged } = buildMockInsights(
+          params.chunks,
+          "groq_rate_limit",
+        );
+        return {
+          package: mockPkg,
+          inputModerationFlagged,
+          provider: "mock",
+          isFullAI: false,
+          fallbackReason: "groq_rate_limit",
+        };
+      }
+      throw err;
+    }
   }
 
   if (!therapistApiKey) {
@@ -432,6 +611,7 @@ export async function generateInsightsFromTranscript(params: {
     const userPrompt = buildUserPrompt({
       chunks: params.chunks,
       materialsContext: materialsContext?.trim().length ? materialsContext : undefined,
+      patientMemory: params.patientMemory?.trim().length ? params.patientMemory : undefined,
     });
 
     type ResponsesApiResponse = unknown;
@@ -441,16 +621,16 @@ export async function generateInsightsFromTranscript(params: {
       const response = await openaiPostJson<ResponsesApiResponse>({
         path: "/responses",
         body: {
-          model: "gpt-5.1-chat-latest",
+          model: MAIN_MODEL,
           input: [
-            { role: "system", content: [{ type: "text", text: systemPrompt }] },
-            { role: "developer", content: [{ type: "text", text: COPILOT_DEVELOPER_PROMPT }] },
-            { role: "user", content: [{ type: "text", text: userPrompt }] },
+            { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+            { role: "developer", content: [{ type: "input_text", text: COPILOT_DEVELOPER_PROMPT }] },
+            { role: "user", content: [{ type: "input_text", text: userPrompt }] },
           ],
           temperature: 0.2,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
+          text: {
+            format: {
+              type: "json_schema",
               name: "therapy_insights",
               strict: true,
               schema: INSIGHTS_JSON_SCHEMA,
@@ -467,15 +647,15 @@ export async function generateInsightsFromTranscript(params: {
       const response = await openaiPostJson<ResponsesApiResponse>({
         path: "/responses",
         body: {
-          model: "gpt-5.1-chat-latest",
+          model: CHEAP_MODEL,
           input: [
-            { role: "system", content: [{ type: "text", text: systemPrompt }] },
-            { role: "developer", content: [{ type: "text", text: COPILOT_DEVELOPER_PROMPT }] },
+            { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+            { role: "developer", content: [{ type: "input_text", text: COPILOT_DEVELOPER_PROMPT }] },
             {
               role: "user",
               content: [
                 {
-                  type: "text",
+                  type: "input_text",
                   text:
                     userPrompt +
                     "\n\nIMPORTANTE: Retorne SOMENTE um objeto JSON valido (sem markdown).",
@@ -484,7 +664,7 @@ export async function generateInsightsFromTranscript(params: {
             },
           ],
           temperature: 0.2,
-          response_format: { type: "json_object" },
+          text: { format: { type: "json_object" } },
         },
         timeoutMs: 60_000,
         apiKey: therapistApiKey,
@@ -522,6 +702,7 @@ export async function generateInsightsFromTranscript(params: {
       package: pkg,
       inputModerationFlagged: inputModeration.flagged,
       provider: "openai",
+      isFullAI: true,
     };
   } catch (err) {
     if (isQuotaError(err)) {
@@ -540,6 +721,7 @@ export async function generateInsightsFromTranscript(params: {
         package: pkg,
         inputModerationFlagged,
         provider: "mock",
+        isFullAI: false,
         fallbackReason: "quota",
       };
     }
