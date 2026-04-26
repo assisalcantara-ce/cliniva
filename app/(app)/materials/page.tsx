@@ -250,7 +250,7 @@ export default function MaterialsPage() {
                 </>
               )}
               <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditModal(null)}>
+                <Button type="button" variant="secondary" onClick={() => setEditModal(null)}>
                   Cancelar
                 </Button>
                 <Button
@@ -284,7 +284,7 @@ export default function MaterialsPage() {
               </p>
               <div className="flex gap-3">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   className="flex-1"
                   onClick={() => setDeleteId(null)}
                   disabled={isDeleting}
