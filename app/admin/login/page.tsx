@@ -146,7 +146,7 @@ export default function AdminLoginPage() {
         <CardHeader className="bg-gradient-to-r from-slate-100 via-slate-50 to-indigo-50 text-slate-800 rounded-t-2xl border-b border-slate-200 pt-0 pb-0 min-h-0">
           <div className="flex flex-col items-center gap-0 text-center">
             <img
-              src="/img/Logo.png"
+              src="/img/logo3.png"
               alt="Logo Cliniva"
               className="w-48 h-48 object-contain"
             />

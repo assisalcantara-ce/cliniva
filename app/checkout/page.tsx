@@ -229,7 +229,7 @@ export default function CheckoutPage() {
       {/* Header */}
       <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/">
-          <img src="/img/Logo.png" alt="Cliniva" className="h-[65px] w-[140px] object-contain" />
+          <img src="/img/logo3.png" alt="Cliniva" className="h-[65px] w-[140px] object-contain" />
         </Link>
         <Link
           href="/planos"

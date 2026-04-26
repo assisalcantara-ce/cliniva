@@ -61,7 +61,7 @@ export default function Home() {
 
         <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
-            <img src="/img/Logo.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
+            <img src="/img/logo3.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
           </div>
           <Link
             href="/login"

@@ -138,7 +138,7 @@ export default function LoginPage() {
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-20">
           <div className="w-20 h-20 bg-white rounded-full shadow-lg border-4 border-teal-600 flex items-center justify-center overflow-hidden animate-in fade-in-down duration-500">
             <img
-              src="/img/Logor.png"
+              src="/img/logo3.png"
               alt="Logo Cliniva"
               className="w-16 h-16 object-contain"
             />

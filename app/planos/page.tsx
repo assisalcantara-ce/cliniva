@@ -58,7 +58,7 @@ export default function PlanosPage() {
         <div className="absolute -top-24 right-12 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" />
 
         <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-3">
-          <img src="/img/Logo.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
+          <img src="/img/logo3.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
           <div className="flex items-center gap-4">
             <Link
               href="/"

@@ -7,7 +7,7 @@ export default function SiteFooter() {
     <footer className="border-t border-emerald-100 bg-white/70">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-4 md:grid-cols-[1.2fr_0.8fr_1fr]">
         <div className="space-y-3">
-          <img src="/img/Logo.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
+          <img src="/img/logo3.png" alt="Cliniva" className="h-[75px] w-[160px] object-contain" />
           <p className="text-sm text-slate-600">
             Copiloto profissional para terapeutas, com apoio de inteligência artificial e foco
             humano.
