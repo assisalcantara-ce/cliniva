@@ -40,7 +40,7 @@ const ADMIN_PROTECTED_ROUTES = [
   '/api/integrations',
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Verificar se é rota pública (exata ou prefixo para /checkout/*)
