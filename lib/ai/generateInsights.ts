@@ -437,6 +437,7 @@ function buildMockInsights(
     package: pkg,
     inputModerationFlagged,
     provider: "mock",
+    isFullAI: false,
     fallbackReason,
   };
 }
