@@ -4,9 +4,7 @@ import { z } from "zod";
 import { generateInsightsFromTranscript } from "@/lib/ai/generateInsights";
 import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getPatientMemory, upsertPatientMemory } from "@/lib/db/patientMemory";
-import { buildUpdatedPatientMemory } from "@/lib/ai/updatePatientMemory";
-import { getTherapistOpenAiKey } from "@/lib/db/therapist";
+import { getPatientMemory } from "@/lib/db/patientMemory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -154,25 +152,6 @@ export async function POST(
         { error: insertResult.error.message },
         { status: 500 },
       );
-    }
-
-    // Atualiza memória clínica do paciente em background (não-bloqueante)
-    // Apenas quando a IA rodou com qualidade (OpenAI ou Groq), não mock
-    if (patientId && provider !== "mock") {
-      const { apiKey } = await getTherapistOpenAiKey({ therapistId }).catch(() => ({ apiKey: undefined }));
-      buildUpdatedPatientMemory({
-        previous: patientMemory ?? "",
-        newInsights: pkg,
-        apiKey,
-      })
-        .then((newSummary) => {
-          if (newSummary) {
-            return upsertPatientMemory({ patientId: patientId!, therapistId, summary: newSummary });
-          }
-        })
-        .catch((err: unknown) => {
-          console.error("[generate] updatePatientMemory error:", err instanceof Error ? err.message : err);
-        });
     }
 
     return NextResponse.json(

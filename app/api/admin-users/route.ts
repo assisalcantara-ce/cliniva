@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { parseAdminToken } from '@/lib/admin/auth';
 
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, full_name, password } = parsed.data;
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const supabase = createSupabaseAdminClient();
 
@@ -103,7 +105,7 @@ export async function POST(req: NextRequest) {
     const { error: userError } = await supabase.from('users').insert({
       therapist_id: therapist.id,
       email,
-      password_hash: password, // In production: use bcryptjs
+      password_hash: passwordHash,
       is_active: true,
     });
 

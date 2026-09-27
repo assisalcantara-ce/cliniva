@@ -1,8 +1,7 @@
-import "server-only";
-
-import { openaiPostJson } from "@/lib/ai/openai";
-import { groqChatJson, getGroqApiKey, type GroqChatMessage } from "@/lib/ai/groq";
-import type { InsightsPackage } from "@/lib/ai/generateInsights";
+export type PatientMemoryInsightsInput = {
+  summary: { bullets: string[] };
+  themes: Array<{ title: string; description: string }>;
+};
 
 const CHEAP_MODEL = process.env.OPENAI_CHEAP_MODEL ?? "gpt-4.1-mini";
 const GROQ_MODEL = process.env.GROQ_MAIN_MODEL ?? "llama-3.3-70b-versatile";
@@ -23,10 +22,9 @@ const MERGE_SYSTEM = [
   "Mantenha até 400 palavras. Seja objetivo.",
 ].join("\n");
 
-function buildMergePrompt(previous: string, newInsights: InsightsPackage): string {
+export function buildMergePrompt(previous: string, newInsights: PatientMemoryInsightsInput): string {
   const sessionSummary = newInsights.summary.bullets.join("\n- ");
   const themes = newInsights.themes.map((t) => `${t.title}: ${t.description}`).join("\n");
-  const hypotheses = newInsights.hypotheses.map((h) => h.hypothesis).join("\n");
 
   return [
     previous ? `Histórico clínico anterior do paciente:\n${previous}` : "Histórico clínico anterior: (nenhum — esta é a primeira sessão analisada)",
@@ -34,7 +32,6 @@ function buildMergePrompt(previous: string, newInsights: InsightsPackage): strin
     "Insights da sessão atual:",
     `Resumo da sessão:\n- ${sessionSummary}`,
     themes ? `Temas identificados:\n${themes}` : "",
-    hypotheses ? `Hipóteses exploratórias:\n${hypotheses}` : "",
   ]
     .filter((line) => line !== undefined && line !== "")
     .join("\n\n");
@@ -50,13 +47,13 @@ function truncateSummary(text: string): string {
 }
 
 /**
- * Atualiza o resumo clínico do paciente com base nos novos insights.
+ * Atualiza o resumo clínico do paciente com base nos novos insights (apenas summary + themes).
  * Usa modelo CHEAP (gpt-4.1-mini) ou Groq como fallback.
  * Retorna o novo resumo, ou null em caso de falha (não crítica).
  */
 export async function buildUpdatedPatientMemory(params: {
   previous: string;
-  newInsights: InsightsPackage;
+  newInsights: PatientMemoryInsightsInput;
   apiKey?: string; // chave OpenAI do terapeuta (se disponível)
 }): Promise<string | null> {
   const { previous, newInsights, apiKey } = params;
@@ -65,6 +62,7 @@ export async function buildUpdatedPatientMemory(params: {
   // ── Tenta OpenAI CHEAP ─────────────────────────────────────────────────
   if (apiKey) {
     try {
+      const { openaiPostJson } = await import("@/lib/ai/openai");
       type ChatResponse = {
         choices: Array<{ message: { content: string } }>;
       };
@@ -91,12 +89,13 @@ export async function buildUpdatedPatientMemory(params: {
   }
 
   // ── Tenta Groq ────────────────────────────────────────────────────────
-  const groqKey = getGroqApiKey();
-  if (groqKey) {
-    try {
-      const messages: GroqChatMessage[] = [
-        { role: "system", content: MERGE_SYSTEM },
-        { role: "user", content: prompt },
+  try {
+    const { getGroqApiKey, groqChatJson } = await import("@/lib/ai/groq");
+    const groqKey = getGroqApiKey();
+    if (groqKey) {
+      const messages = [
+        { role: "system" as const, content: MERGE_SYSTEM },
+        { role: "user" as const, content: prompt },
       ];
       const text = await groqChatJson({
         model: GROQ_MODEL,
@@ -106,9 +105,9 @@ export async function buildUpdatedPatientMemory(params: {
         apiKey: groqKey,
       });
       if (text) return truncateSummary(text);
-    } catch {
-      // Falha silenciosa
     }
+  } catch {
+    // Falha silenciosa
   }
 
   return null;

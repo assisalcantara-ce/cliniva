@@ -1,5 +1,3 @@
-import "server-only";
-
 const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 const SLOT_MINUTES = 60;
 
@@ -78,8 +76,9 @@ export function generateSlots(params: {
   rules: AvailabilityRule[];
   blocks: AvailabilityBlock[];
   appointments: AppointmentRow[];
+  now?: Date;
 }) {
-  const { startDate, endDate, rules, blocks, appointments } = params;
+  const { startDate, endDate, rules, blocks, appointments, now } = params;
   const start = buildDateOnly(startDate);
   const end = buildDateOnly(endDate);
 
@@ -106,12 +105,16 @@ export function generateSlots(params: {
         const slotStart = buildDateTime(dayStr, timeStr, rule.timezone);
         const slotEnd = addMinutes(slotStart, SLOT_MINUTES);
 
+        if (now && slotStart.getTime() <= now.getTime()) {
+          continue;
+        }
+
         const hasBlock = blocks.some((block) => {
           const blockStart = new Date(block.starts_at);
           const blockEnd = new Date(block.ends_at);
           return overlaps(slotStart, slotEnd, blockStart, blockEnd);
         });
-        if (hasBlock) return;
+        if (hasBlock) continue;
 
         const hasAppointment = appointments.some((appt) => {
           if (appt.status === "cancelled") return false;
@@ -119,7 +122,7 @@ export function generateSlots(params: {
           const apptEnd = new Date(appt.scheduled_end);
           return overlaps(slotStart, slotEnd, apptStart, apptEnd);
         });
-        if (hasAppointment) return;
+        if (hasAppointment) continue;
 
         slots.push({
           date: dayStr,

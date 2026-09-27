@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 const ruleSchema = z.object({
   day_of_week: z.number().int().min(0).max(6),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/),
-  end_time: z.string().regex(/^\d{2}:\d{2}$/),
+  start_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
+  end_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
   timezone: z.string().optional(),
   is_active: z.boolean().optional(),
 });
@@ -39,7 +39,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ rules: data ?? [] }, { status: 200 });
+    const rules = (data ?? []).map((rule) => ({
+      ...rule,
+      start_time: String(rule.start_time).slice(0, 5),
+      end_time: String(rule.end_time).slice(0, 5),
+      is_active: Boolean(rule.is_active),
+    }));
+
+    return NextResponse.json({ rules }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -90,8 +97,8 @@ export async function PUT(req: NextRequest) {
           rules.map((rule) => ({
             therapist_id: therapistId,
             day_of_week: rule.day_of_week,
-            start_time: rule.start_time,
-            end_time: rule.end_time,
+            start_time: rule.start_time.slice(0, 5),
+            end_time: rule.end_time.slice(0, 5),
             timezone: rule.timezone ?? "America/Sao_Paulo",
             is_active: rule.is_active !== false,
           })),
@@ -105,8 +112,15 @@ export async function PUT(req: NextRequest) {
         );
       }
 
+      const normalizedRules = (insertResult.data ?? []).map((r) => ({
+        ...r,
+        start_time: String(r.start_time).slice(0, 5),
+        end_time: String(r.end_time).slice(0, 5),
+        is_active: Boolean(r.is_active),
+      }));
+
       return NextResponse.json(
-        { rules: insertResult.data ?? [] },
+        { rules: normalizedRules },
         { status: 200 },
       );
     }

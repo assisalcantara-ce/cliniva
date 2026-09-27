@@ -205,7 +205,7 @@ export default function AdminLoginPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Senha padrão: <code className="bg-gray-100 px-2 py-1 rounded">admin123</code>
+                Use a senha definida pelo administrador do sistema.
               </p>
             </div>
 

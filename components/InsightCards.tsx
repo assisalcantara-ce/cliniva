@@ -465,15 +465,6 @@ export function InsightCards({
         Insights gerados a partir dos trechos registrados nesta sessão.
       </p>
 
-      {/* Aviso modo básico (Groq sem RAG) */}
-      {isBasicMode && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-          Análise gerada em <strong>modo básico</strong> (sem RAG nem evidências de materiais).{" "}
-          <a href="/settings" className="underline font-medium">Configure sua chave OpenAI</a>{" "}
-          para uma análise mais avançada.
-        </div>
-      )}
-
       {/* Contexto do Paciente (memória de sessões anteriores) */}
       {patientMemory && patientMemory.trim().length > 0 && (
         <div className="rounded-lg border border-violet-200 bg-violet-50/50 px-4 py-3">

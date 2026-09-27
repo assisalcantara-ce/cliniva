@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "gateway": "npx tsx --env-file=.env.local services/realtime-gateway/runner.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

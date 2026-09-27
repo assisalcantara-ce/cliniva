@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createAdminToken } from '@/lib/admin/auth';
 
@@ -10,13 +11,6 @@ const loginSchema = z.object({
   email: z.string().trim().min(1, 'Email é obrigatório'),
   password: z.string().trim().min(1, 'Senha é obrigatória'),
 });
-
-// Simple password verification (in production, use proper bcrypt)
-function verifyPassword(plainPassword: string, hashedPassword: string): boolean {
-  // For now, using a simple comparison
-  // In production: use bcryptjs.compare()
-  return plainPassword === 'admin123'; // Temporary for demo
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,8 +57,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify password (using simple comparison for now)
-    if (!verifyPassword(password, adminUser.password_hash)) {
+    if (!adminUser.password_hash) {
+      return NextResponse.json(
+        { error: 'Email ou senha inválidos' },
+        { status: 401 }
+      );
+    }
+
+    const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
+    if (!passwordMatch) {
       return NextResponse.json(
         { error: 'Email ou senha inválidos' },
         { status: 401 }
