@@ -143,6 +143,8 @@ export function SessionWorkspace({
       <LiveSessionView
         sessionId={sessionId}
         patientName={patientName}
+        patientMemory={patientMemory}
+        lastSessionDate={lastSessionDate}
         streamState={effectiveState}
         startTime={sessionStartTime}
         transcripts={stream.transcripts}
@@ -152,6 +154,13 @@ export function SessionWorkspace({
         onEndSession={handleEndSession}
         onDismissEvent={stream.dismissEvent}
         onTogglePinEvent={stream.pinEvent}
+        onBack={() => {
+          if (patientId) {
+            router.push(`/patients/${patientId}`);
+          } else {
+            router.push("/patients");
+          }
+        }}
       />
     );
   }
