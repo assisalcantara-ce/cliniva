@@ -9,7 +9,12 @@ export interface AuthUser {
 
 function getSecret(): string {
   const s = process.env.AUTH_SECRET;
-  if (!s) throw new Error("Missing env var: AUTH_SECRET");
+  if (!s) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL SECURITY ERROR: AUTH_SECRET must be defined in production.");
+    }
+    return "cliniva-dev-fallback-secret-2025";
+  }
   return s;
 }
 

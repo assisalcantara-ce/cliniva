@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AppTopbar } from "@/components/layout/AppTopbar";
+import { cn } from "@/lib/utils";
 
 export function AppShell({
   children,
@@ -15,9 +16,37 @@ export function AppShell({
   aiProvider: "openai" | "mock";
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [aiMode, setAiMode] = useState<"openai" | "groq" | "offline">(
     initialAiOnline ? "openai" : "offline",
   );
+
+  // Carrega preferência do sidebar (compacto vs expandido) do localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cliniva_sidebar_collapsed");
+      if (saved !== null) {
+        const shouldCollapse = saved === "true";
+        queueMicrotask(() => {
+          setIsCollapsed(shouldCollapse);
+        });
+      }
+    } catch {
+      // Ignora erro de acesso ao localStorage
+    }
+  }, []);
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("cliniva_sidebar_collapsed", String(next));
+      } catch {
+        // Ignora
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     async function refreshAiStatus() {
@@ -57,9 +86,19 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <AppSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        collapsed={isCollapsed}
+        onToggleCollapse={handleToggleCollapse}
+      />
 
-      <div className="flex min-h-screen flex-col md:pl-[260px]">
+      <div
+        className={cn(
+          "flex min-h-screen flex-col transition-[padding] duration-300 ease-in-out",
+          isCollapsed ? "md:pl-[80px]" : "md:pl-[280px]"
+        )}
+      >
         <AppTopbar aiMode={aiMode} onOpenSidebar={() => setSidebarOpen(true)} />
 
         <main className="mx-auto w-full max-w-[1400px] px-6 py-0">{children}</main>
