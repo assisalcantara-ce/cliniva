@@ -129,11 +129,13 @@ export function SessionWorkspace({
     return (
       <PreSessionView
         sessionId={sessionId}
+        patientId={patientId}
         patientName={patientName}
         patientMemory={patientMemory}
         lastSessionDate={lastSessionDate}
         isResuming={isResuming}
         onStartSession={handleStartSession}
+        onBack={() => router.push("/sessions")}
       />
     );
   }
@@ -148,6 +150,7 @@ export function SessionWorkspace({
         streamState={effectiveState}
         startTime={sessionStartTime}
         transcripts={stream.transcripts}
+        interimTranscript={stream.interimTranscript}
         events={stream.activeCopilotEvents}
         onPause={handlePauseSession}
         onResume={handleResumeSession}
