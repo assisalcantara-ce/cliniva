@@ -84,6 +84,9 @@ export default function LoginPage() {
         backgroundColor: "#E2F6F5"
       }}
     >
+      {/* White Gradient Layer on Left for Maximum Text Legibility */}
+      <div className="absolute inset-y-0 left-0 w-full lg:w-[48%] xl:w-[45%] bg-gradient-to-r from-white/90 via-white/50 to-transparent pointer-events-none z-0" />
+
       {/* Modal Dialog */}
       {modal.isOpen && (
         <div className="fixed inset-0 bg-slate-950/45 flex items-center justify-center z-50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
