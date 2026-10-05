@@ -140,17 +140,17 @@ export default function LoginPage() {
       )}
 
       {/* Main Responsive Grid Layout */}
-      <main className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center z-10">
+      <main className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-4 items-center z-10">
         
-        {/* ======================================================== */}
-        {/* LADO ESQUERDO: INSTITUCIONAL / MARKETING DO CLINIVA      */}
-        {/* ======================================================== */}
-        <div className="lg:col-span-7 flex flex-col justify-between space-y-4 lg:space-y-6 lg:pr-6">
+        {/* ========================================================================= */}
+        {/* LADO ESQUERDO: INSTITUCIONAL COM PROTEÇÃO DE CONTRASTE E LARGURA DEFINIDA */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-5 xl:col-span-5 w-full max-w-[490px] bg-white/70 backdrop-blur-md rounded-3xl p-5 sm:p-7 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between space-y-4">
           
           {/* 1. Header Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-700/20 border border-teal-500">
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="2">
+            <div className="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-700/20 border border-teal-500 shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -165,32 +165,31 @@ export default function LoginPage() {
               <span className="text-2xl font-black tracking-tight text-slate-900 block leading-tight">
                 Cliniva
               </span>
-              <span className="text-[11px] font-extrabold text-teal-600 tracking-wider uppercase">
+              <span className="text-[10px] font-extrabold text-teal-600 tracking-wider uppercase">
                 Therapy Copilots
               </span>
             </div>
           </div>
 
           {/* 2. Headline Principal */}
-          <div className="space-y-3 max-w-xl">
-            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-slate-900 tracking-tight leading-[1.12]">
-              Seu consultório<br />
-              mais produtivo,<br />
-              <span className="text-teal-600 underline decoration-teal-300 decoration-wavy decoration-2 underline-offset-4">
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black text-slate-900 tracking-tight leading-[1.18]">
+              Seu consultório mais produtivo,<br />
+              <span className="text-[#00897B] underline decoration-teal-300 decoration-wavy decoration-2 underline-offset-4">
                 humano e inteligente.
               </span>
             </h1>
-            <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal max-w-lg">
+            <p className="text-xs sm:text-[14px] text-slate-700 leading-relaxed font-normal">
               O copiloto que organiza sua rotina, acompanha seus atendimentos e te dá mais tempo para o que realmente importa: <strong className="font-semibold text-slate-900">cuidar de pessoas</strong>.
             </p>
           </div>
 
-          {/* 3. Benefícios em Lista Clean */}
-          <div className="space-y-3.5 pt-1 max-w-md">
-            {/* Item 1 */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 shadow-xs">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {/* 3. Benefícios em Grade 2x2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            {/* Item 1: Agenda inteligente */}
+            <div className="bg-white/90 border border-teal-100/90 rounded-2xl p-2.5 sm:p-3 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between">
+              <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100/60 text-teal-600 flex items-center justify-center mb-1.5 shrink-0">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                   <line x1="16" y1="2" x2="16" y2="6" />
                   <line x1="8" y1="2" x2="8" y2="6" />
@@ -198,72 +197,77 @@ export default function LoginPage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-sm font-extrabold text-slate-900 leading-tight">Agenda inteligente</h2>
-                <p className="text-xs text-slate-600">Organize sua rotina com facilidade</p>
+                <h2 className="text-xs font-bold text-slate-900 leading-tight">Agenda inteligente</h2>
+                <p className="text-[11px] text-slate-600 font-medium leading-tight mt-0.5">Organize sua rotina com facilidade</p>
               </div>
             </div>
 
-            {/* Item 2 */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 shadow-xs">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {/* Item 2: Prontuário completo */}
+            <div className="bg-white/90 border border-teal-100/90 rounded-2xl p-2.5 sm:p-3 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between">
+              <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100/60 text-teal-600 flex items-center justify-center mb-1.5 shrink-0">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-sm font-extrabold text-slate-900 leading-tight">Prontuário completo</h2>
-                <p className="text-xs text-slate-600">Tudo em um só lugar</p>
+                <h2 className="text-xs font-bold text-slate-900 leading-tight">Prontuário completo</h2>
+                <p className="text-[11px] text-slate-600 font-medium leading-tight mt-0.5">Tudo em um só lugar</p>
               </div>
             </div>
 
-            {/* Item 3 */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 shadow-xs">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {/* Item 3: Insights clínicos */}
+            <div className="bg-white/90 border border-teal-100/90 rounded-2xl p-2.5 sm:p-3 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between">
+              <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100/60 text-teal-600 flex items-center justify-center mb-1.5 shrink-0">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-sm font-extrabold text-slate-900 leading-tight">Insights clínicos</h2>
-                <p className="text-xs text-slate-600">Dados que apoiam suas decisões</p>
+                <h2 className="text-xs font-bold text-slate-900 leading-tight">Insights clínicos</h2>
+                <p className="text-[11px] text-slate-600 font-medium leading-tight mt-0.5">Dados que apoiam suas decisões</p>
               </div>
             </div>
 
-            {/* Item 4 */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 shadow-xs">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {/* Item 4: Mais tempo para você */}
+            <div className="bg-white/90 border border-teal-100/90 rounded-2xl p-2.5 sm:p-3 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between">
+              <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100/60 text-teal-600 flex items-center justify-center mb-1.5 shrink-0">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-sm font-extrabold text-slate-900 leading-tight">Mais tempo para seus pacientes</h2>
-                <p className="text-xs text-slate-600">Tecnologia a seu favor</p>
+                <h2 className="text-xs font-bold text-slate-900 leading-tight">Mais tempo para você</h2>
+                <p className="text-[11px] text-slate-600 font-medium leading-tight mt-0.5">Tecnologia a seu favor</p>
               </div>
             </div>
           </div>
 
           {/* 4. Quote no Rodapé da Esquerda */}
-          <div className="pt-2 hidden sm:block">
-            <p className="text-xs text-slate-600 font-medium italic">
+          <div className="pt-2 border-t border-slate-200/60 hidden sm:block">
+            <p className="text-[11px] text-slate-600 font-medium italic">
               — &ldquo;Mais tecnologia. Mais cuidado. Mais pessoas.&rdquo;
             </p>
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* LADO DIREITO: CARD DE AUTENTICAÇÃO (MOCKUP EXACT MATCH)   */}
-        {/* ======================================================== */}
-        <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
-          <div className="w-full max-w-[430px] bg-white rounded-[32px] p-7 sm:p-9 shadow-2xl shadow-teal-900/10 border border-slate-100/90 relative">
+        {/* ========================================================================= */}
+        {/* ESPAÇO CENTRAL: VAZIO PARA EXIBIÇÃO TOTAL DO ROBÔ E ÍCONES ORBITAIS       */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-2 xl:col-span-2 hidden lg:block pointer-events-none" />
+
+        {/* ========================================================================= */}
+        {/* LADO DIREITO: CARD DE AUTENTICAÇÃO LIMPO E ELEVADO                        */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end w-full">
+          <div className="w-full max-w-[400px] xl:max-w-[420px] bg-white rounded-[32px] p-6 sm:p-8 shadow-2xl shadow-teal-900/10 border border-slate-100/90 relative">
             
             {/* Header Brand Dentro do Card */}
-            <div className="flex flex-col items-center justify-center text-center mb-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-sm">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
+            <div className="flex flex-col items-center justify-center text-center mb-5">
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-sm">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="2">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -275,29 +279,29 @@ export default function LoginPage() {
                   </svg>
                 </div>
                 <div className="text-left">
-                  <span className="text-2xl font-black tracking-tight text-slate-900 block leading-none">
+                  <span className="text-xl font-black tracking-tight text-slate-900 block leading-none">
                     Cliniva
                   </span>
-                  <span className="text-[10px] font-extrabold text-teal-600 tracking-wider uppercase block mt-1">
+                  <span className="text-[9px] font-extrabold text-teal-600 tracking-wider uppercase block mt-0.5">
                     Therapy Copilots
                   </span>
                 </div>
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                 Acesse sua conta
               </h2>
-              <p className="text-xs text-slate-500 font-medium mt-1">
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Entre com seu e-mail e senha para continuar.
               </p>
             </div>
 
             {/* Formulário */}
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-3.5">
               
               {/* Campo E-mail */}
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="block text-xs font-bold text-slate-700">
+              <div className="space-y-1">
+                <label htmlFor="email" className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   E-mail ou usuário
                 </label>
                 <div className="relative">
@@ -320,9 +324,9 @@ export default function LoginPage() {
               </div>
 
               {/* Campo Senha */}
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="block text-xs font-bold text-slate-700">
+                  <label htmlFor="password" className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                     Senha
                   </label>
                   <button
@@ -374,7 +378,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => showModal("info", "Recuperação de Senha", "Para redefinir sua senha, solicite ao administrador da clínica ou utilize a senha provisória padrão: THERAPY2025")}
-                    className="text-xs font-bold text-teal-600 hover:text-teal-700 transition-colors"
+                    className="text-[11px] font-bold text-teal-600 hover:text-teal-700 transition-colors"
                   >
                     Esqueci minha senha
                   </button>
@@ -385,7 +389,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 mt-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer text-sm"
+                className="w-full h-11 mt-1 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer text-xs sm:text-sm"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -402,7 +406,7 @@ export default function LoginPage() {
             </form>
 
             {/* Divisor */}
-            <div className="relative my-4">
+            <div className="relative my-3.5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200/80" />
               </div>
@@ -416,20 +420,20 @@ export default function LoginPage() {
             {/* Botão Secundário Administrador */}
             <Link
               href="/admin/login"
-              className="w-full h-11 rounded-xl bg-teal-50/70 hover:bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center gap-2 text-xs font-bold transition-all hover:border-teal-200"
+              className="w-full h-10 rounded-xl bg-teal-50/70 hover:bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center gap-2 text-xs font-bold transition-all hover:border-teal-200"
             >
-              <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-3.5 h-3.5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               <span>Acesso do administrador</span>
             </Link>
 
             {/* Rodapé do Card */}
-            <div className="mt-6 pt-4 text-center space-y-1">
-              <p className="text-[11px] text-slate-400 font-medium">
+            <div className="mt-4 pt-3 text-center space-y-0.5 border-t border-slate-100">
+              <p className="text-[10px] text-slate-400 font-medium">
                 Sistema de gerenciamento de sessões de terapia
               </p>
-              <p className="text-[11px] text-slate-400 font-medium">
+              <p className="text-[10px] text-slate-400 font-medium">
                 © 2025 Therapy Copilot
               </p>
             </div>
