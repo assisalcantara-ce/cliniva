@@ -77,11 +77,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fbfb] flex flex-col justify-between selection:bg-teal-100 selection:text-teal-900 relative overflow-x-hidden font-sans">
+    <div 
+      className="h-screen max-h-screen w-full flex flex-col justify-between selection:bg-teal-100 selection:text-teal-900 relative overflow-hidden font-sans bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "url('/img/login_bg.jpg')",
+      }}
+    >
+      {/* Background Soft Atmospheric Glass Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#f8fbfb]/96 via-[#f8fbfb]/90 to-[#f8fbfb]/82 lg:from-[#f8fbfb]/94 lg:via-[#f8fbfb]/88 lg:to-[#f8fbfb]/80 backdrop-blur-[2px] pointer-events-none" />
+      
       {/* Background Subtle Gradient Blobs */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-teal-200/20 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-cyan-200/20 rounded-full blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
-      <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-teal-100/30 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute top-0 left-0 w-[450px] h-[450px] bg-teal-300/15 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-300/15 rounded-full blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
 
       {/* Modal Dialog */}
       {modal.isOpen && (
@@ -117,7 +124,7 @@ export default function LoginPage() {
                   <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 shrink-0">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
                       <line x1="12" y1="8" x2="12.01" y2="8" />
                     </svg>
                   </div>
@@ -139,17 +146,17 @@ export default function LoginPage() {
       )}
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex items-center justify-center relative z-10">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 flex items-center justify-center relative z-10 overflow-y-auto lg:overflow-visible">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
           
           {/* ======================================================== */}
           {/* LADO ESQUERDO: INSTITUCIONAL / MARKETING / COPILOTO      */}
           {/* ======================================================== */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-8 lg:pr-6">
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-4 lg:space-y-6 lg:pr-4">
             {/* Header Brand */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center text-white shadow-md shadow-teal-700/20">
-                <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center text-white shadow-md shadow-teal-700/20">
+                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="2">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -161,38 +168,38 @@ export default function LoginPage() {
                 </svg>
               </div>
               <div>
-                <span className="text-xl font-black tracking-tight text-slate-900 block leading-tight">
+                <span className="text-lg font-black tracking-tight text-slate-900 block leading-tight">
                   Cliniva
                 </span>
-                <span className="text-[11px] font-bold text-teal-600 tracking-wider uppercase">
+                <span className="text-[10px] font-bold text-teal-600 tracking-wider uppercase">
                   Therapy Copilots
                 </span>
               </div>
             </div>
 
             {/* Main Headline */}
-            <div className="space-y-4 max-w-xl">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+            <div className="space-y-2.5 max-w-xl">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
                 Seu consultório mais produtivo,{" "}
-                <span className="text-teal-600 underline decoration-teal-300 decoration-wavy decoration-2 underline-offset-6">
+                <span className="text-teal-600 underline decoration-teal-300 decoration-wavy decoration-2 underline-offset-4">
                   humano e inteligente.
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
                 O copiloto que organiza sua rotina, acompanha seus atendimentos e te dá mais tempo para o que realmente importa: <strong className="font-semibold text-slate-800">cuidar de pessoas</strong>.
               </p>
             </div>
 
             {/* Center Visual Mockup & Floating Pills */}
-            <div className="relative py-4">
-              <div className="relative bg-gradient-to-br from-teal-500/10 via-cyan-500/5 to-white/80 p-6 sm:p-8 rounded-3xl border border-teal-100/80 shadow-sm backdrop-blur-sm overflow-hidden">
-                <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative">
+              <div className="relative bg-gradient-to-br from-teal-500/10 via-cyan-500/5 to-white/80 p-4 sm:p-6 rounded-2xl border border-teal-100/80 shadow-sm backdrop-blur-sm overflow-hidden">
+                <div className="flex flex-col sm:flex-row items-center gap-5">
                   {/* Copilot Mascot / Visual Avatar */}
                   <div className="relative shrink-0">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-tr from-teal-600 via-teal-500 to-cyan-400 p-1 shadow-xl shadow-teal-600/25 flex items-center justify-center">
-                      <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center relative overflow-hidden">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-tr from-teal-600 via-teal-500 to-cyan-400 p-1 shadow-lg shadow-teal-600/20 flex items-center justify-center">
+                      <div className="w-full h-full bg-slate-900 rounded-[12px] flex items-center justify-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-t from-teal-500/30 to-transparent" />
-                        <svg viewBox="0 0 24 24" fill="none" className="w-12 h-12 text-cyan-300 relative z-10" stroke="currentColor" strokeWidth="1.75">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-10 h-10 text-cyan-300 relative z-10" stroke="currentColor" strokeWidth="1.75">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -206,18 +213,18 @@ export default function LoginPage() {
                       </div>
                     </div>
                     {/* Live Pulse Badge */}
-                    <div className="absolute -bottom-2 -right-2 bg-white px-2.5 py-1 rounded-full shadow-md border border-teal-100 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Copilot Ativo</span>
+                    <div className="absolute -bottom-2 -right-1.5 bg-white px-2 py-0.5 rounded-full shadow-md border border-teal-100 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                      <span className="text-[9px] font-bold text-slate-700 uppercase tracking-wider">Copilot Ativo</span>
                     </div>
                   </div>
 
                   {/* Feature Highlights Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
                     {/* Item 1 */}
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/90 border border-slate-100 shadow-sm hover:border-teal-200 transition-colors">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/90 border border-slate-100 shadow-xs hover:border-teal-200 transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
                           <line x1="8" y1="2" x2="8" y2="6" />
@@ -225,15 +232,15 @@ export default function LoginPage() {
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <h2 className="text-xs font-bold text-slate-900">Agenda inteligente</h2>
-                        <p className="text-[11px] text-slate-500 truncate">Rotina sem atritos</p>
+                        <h2 className="text-xs font-bold text-slate-900 leading-tight">Agenda inteligente</h2>
+                        <p className="text-[10px] text-slate-500 truncate">Rotina sem atritos</p>
                       </div>
                     </div>
 
                     {/* Item 2 */}
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/90 border border-slate-100 shadow-sm hover:border-teal-200 transition-colors">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/90 border border-slate-100 shadow-xs hover:border-teal-200 transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
                           <line x1="16" y1="13" x2="8" y2="13" />
@@ -241,36 +248,36 @@ export default function LoginPage() {
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <h2 className="text-xs font-bold text-slate-900">Prontuário completo</h2>
-                        <p className="text-[11px] text-slate-500 truncate">Tudo em um só lugar</p>
+                        <h2 className="text-xs font-bold text-slate-900 leading-tight">Prontuário completo</h2>
+                        <p className="text-[10px] text-slate-500 truncate">Tudo em um só lugar</p>
                       </div>
                     </div>
 
                     {/* Item 3 */}
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/90 border border-slate-100 shadow-sm hover:border-teal-200 transition-colors">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/90 border border-slate-100 shadow-xs hover:border-teal-200 transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                           <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                           <line x1="12" y1="22.08" x2="12" y2="12" />
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <h2 className="text-xs font-bold text-slate-900">Insights clínicos</h2>
-                        <p className="text-[11px] text-slate-500 truncate">Apoio a decisões</p>
+                        <h2 className="text-xs font-bold text-slate-900 leading-tight">Insights clínicos</h2>
+                        <p className="text-[10px] text-slate-500 truncate">Apoio a decisões</p>
                       </div>
                     </div>
 
                     {/* Item 4 */}
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/90 border border-slate-100 shadow-sm hover:border-teal-200 transition-colors">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/90 border border-slate-100 shadow-xs hover:border-teal-200 transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <h2 className="text-xs font-bold text-slate-900">Mais presença</h2>
-                        <p className="text-[11px] text-slate-500 truncate">Foco total no paciente</p>
+                        <h2 className="text-xs font-bold text-slate-900 leading-tight">Mais presença</h2>
+                        <p className="text-[10px] text-slate-500 truncate">Foco total no paciente</p>
                       </div>
                     </div>
                   </div>
@@ -279,8 +286,8 @@ export default function LoginPage() {
             </div>
 
             {/* Bottom Quote / Institutional Note */}
-            <div className="pt-2 border-t border-slate-200/60 hidden sm:block">
-              <p className="text-xs text-slate-500 flex items-center gap-2">
+            <div className="pt-1.5 border-t border-slate-200/60 hidden sm:block">
+              <p className="text-[11px] text-slate-500 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
                 <span className="font-medium text-slate-700">Mais tecnologia. Mais cuidado. Mais pessoas.</span>
               </p>
@@ -291,39 +298,38 @@ export default function LoginPage() {
           {/* LADO DIREITO: CARD DE AUTENTICAÇÃO                        */}
           {/* ======================================================== */}
           <div className="lg:col-span-5 flex justify-center w-full">
-            <div className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 relative">
+            <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-100 relative">
               
               {/* Card Header */}
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center shadow-inner">
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center shadow-inner">
                   <img
                     src="/img/logo3.png"
                     alt="Logo Cliniva"
-                    className="w-10 h-10 object-contain"
+                    className="w-9 h-9 object-contain"
                     onError={(e) => {
-                      // Fallback icon if logo image is missing
                       (e.target as HTMLElement).style.display = "none";
                     }}
                   />
                 </div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   Acesse sua conta
                 </h2>
-                <p className="text-sm text-slate-500 mt-1.5">
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
                   Entre com seu e-mail e senha para continuar.
                 </p>
               </div>
 
               {/* Login Form */}
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-3.5">
                 {/* Email Input */}
-                <div className="space-y-1.5">
-                  <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <div className="space-y-1">
+                  <label htmlFor="email" className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                     E-mail ou Usuário
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect width="20" height="16" x="2" y="4" rx="2" />
                         <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                       </svg>
@@ -334,29 +340,29 @@ export default function LoginPage() {
                       value={formData.email}
                       onChange={(e) => updateField("email", e.target.value)}
                       placeholder="dra.cristiane@therapy.com"
-                      className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-500/10 transition-all bg-slate-50/50 hover:bg-white focus:bg-white"
+                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-slate-900 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-500/10 transition-all bg-slate-50/50 hover:bg-white focus:bg-white"
                       required
                     />
                   </div>
                 </div>
 
                 {/* Password Input */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    <label htmlFor="password" className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                       Senha
                     </label>
                     <button
                       type="button"
                       onClick={autofillPassword}
-                      className="text-xs font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-colors"
+                      className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-colors"
                     >
                       Preencher provisória
                     </button>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                       </svg>
@@ -367,31 +373,31 @@ export default function LoginPage() {
                       value={formData.password}
                       onChange={(e) => updateField("password", e.target.value)}
                       placeholder="••••••••"
-                      className="w-full h-12 pl-11 pr-12 rounded-xl border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-500/10 transition-all bg-slate-50/50 hover:bg-white focus:bg-white"
+                      className="w-full h-11 pl-10 pr-11 rounded-xl border border-slate-200 text-slate-900 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-500/10 transition-all bg-slate-50/50 hover:bg-white focus:bg-white"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded transition-colors"
                       title={showPassword ? "Ocultar senha" : "Ver senha"}
                     >
                       {showPassword ? (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                           <line x1="1" y1="1" x2="23" y2="23" />
                         </svg>
                       ) : (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                           <circle cx="12" cy="12" r="3" />
                         </svg>
                       )}
                     </button>
                   </div>
-                  <div className="flex justify-between items-center pt-1 text-xs">
+                  <div className="flex justify-between items-center pt-0.5 text-[11px]">
                     <span className="text-slate-400">
-                      Provisória: <code className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono font-bold text-[11px]">{defaultPassword}</code>
+                      Provisória: <code className="bg-slate-100 text-slate-600 px-1 py-0.5 rounded font-mono font-bold text-[10px]">{defaultPassword}</code>
                     </span>
                     <button
                       type="button"
@@ -407,7 +413,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-600/20 hover:shadow-teal-600/30 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer text-sm"
+                  className="w-full h-11 mt-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer text-xs sm:text-sm"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
@@ -427,12 +433,12 @@ export default function LoginPage() {
               </form>
 
               {/* Divider */}
-              <div className="relative my-6">
+              <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-3 text-slate-400 font-semibold tracking-wider">
+                <div className="relative flex justify-center text-[10px] uppercase">
+                  <span className="bg-white px-2 text-slate-400 font-semibold tracking-wider">
                     ou
                   </span>
                 </div>
@@ -441,26 +447,25 @@ export default function LoginPage() {
               {/* Secondary Admin Action */}
               <Link
                 href="/admin/login"
-                className="w-full h-11 rounded-xl bg-teal-50/70 hover:bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center gap-2 text-xs font-bold transition-all hover:border-teal-200"
+                className="w-full h-10 rounded-xl bg-teal-50/70 hover:bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center gap-2 text-xs font-bold transition-all hover:border-teal-200"
               >
-                <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-3.5 h-3.5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 <span>Acesso do Administrador</span>
               </Link>
 
               {/* Footer Links */}
-              <div className="mt-8 pt-6 border-t border-slate-100 text-center space-y-3">
-                <p className="text-[11px] text-slate-400">
-                  Sistema de gerenciamento de sessões de terapia<br />
-                  <span className="font-semibold text-slate-500">© 2025 Therapy Copilot • Cliniva</span>
+              <div className="mt-4 pt-3.5 border-t border-slate-100 text-center space-y-2">
+                <p className="text-[10px] text-slate-400">
+                  Sistema de gerenciamento de sessões de terapia • <span className="font-semibold text-slate-500">© 2025 Cliniva</span>
                 </p>
                 <div>
                   <Link
                     href="/"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-teal-600 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-teal-600 transition-colors"
                   >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="19" y1="12" x2="5" y2="12" />
                       <polyline points="12 19 5 12 12 5" />
                     </svg>
@@ -475,7 +480,7 @@ export default function LoginPage() {
       </main>
 
       {/* Subtle Bottom Bar */}
-      <footer className="w-full py-4 text-center text-xs text-slate-400 border-t border-slate-200/50 bg-white/50 backdrop-blur-xs relative z-10">
+      <footer className="w-full py-2 text-center text-[11px] text-slate-400 border-t border-slate-200/50 bg-white/60 backdrop-blur-xs relative z-10 shrink-0">
         Desenvolvido com excelência para a prática clínica humanizada
       </footer>
     </div>
