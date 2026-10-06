@@ -153,11 +153,13 @@ export default function LoginPage() {
           {/* 1. Header Brand & Linha de Destaque Teal */}
           <div>
             <div className="flex items-center">
-              <img
-                src="/img/logo.png"
-                alt="Cliniva Therapy Copilots"
-                className="h-12 sm:h-14 w-auto object-contain"
-              />
+              <Link href="/" className="inline-block hover:opacity-90 transition-opacity" title="Voltar à página inicial">
+                <img
+                  src="/img/logo.png"
+                  alt="Cliniva Therapy Copilots"
+                  className="h-12 sm:h-14 w-auto object-contain"
+                />
+              </Link>
             </div>
             {/* Linha de Destaque Teal */}
             <div className="w-12 h-1.5 bg-teal-500 rounded-full mt-3.5" />
@@ -413,12 +415,21 @@ export default function LoginPage() {
             </Link>
 
             {/* Rodapé do Card */}
-            <div className="mt-6 pt-4 text-center space-y-1">
+            <div className="mt-5 pt-3.5 text-center space-y-2 border-t border-slate-100">
+              <div>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-teal-700 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="19" y1="12" x2="5" y2="12" />
+                    <polyline points="12 19 5 12 12 5" />
+                  </svg>
+                  <span>Voltar à página inicial</span>
+                </Link>
+              </div>
               <p className="text-[11px] text-slate-400 font-medium">
-                Sistema de gerenciamento de sessões de terapia
-              </p>
-              <p className="text-[11px] text-slate-400 font-medium">
-                © 2025 Therapy Copilot
+                Sistema de gerenciamento de sessões de terapia • © 2025 Therapy Copilot
               </p>
             </div>
           </div>
