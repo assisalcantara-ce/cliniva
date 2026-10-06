@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DM_Serif_Display, Manrope } from "next/font/google";
+import { ContactSection } from "@/components/landing/ContactSection";
 
 const serif = DM_Serif_Display({
   weight: "400",
@@ -377,8 +378,13 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ========================================================================= */}
+      {/* 6. FORMULÁRIO DE CONTATO & SUPORTE ESPECIALIZADO                          */}
+      {/* ========================================================================= */}
+      <ContactSection />
+
       {/* Footer */}
-      <footer id="contato" className="w-full border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 space-y-1">
+      <footer className="w-full border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 space-y-1">
         <p className="font-semibold text-slate-700">Cliniva — Copiloto clínico com IA para profissionais de saúde mental.</p>
         <p>Suporte humano + IA para uma prática clínica mais organizada, ética e segura • © 2025 Cliniva</p>
       </footer>
