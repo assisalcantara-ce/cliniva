@@ -84,8 +84,8 @@ export default function LoginPage() {
         backgroundColor: "#E2F6F5"
       }}
     >
-      {/* Soft Gradient Layer on Left for Maximum Text Legibility */}
-      <div className="absolute inset-y-0 left-0 w-full lg:w-[46%] xl:w-[44%] bg-gradient-to-r from-white/90 via-white/50 to-transparent pointer-events-none z-0" />
+      {/* Soft Gradient Layer on Left for Maximum Text Legibility (Extended to the Right) */}
+      <div className="absolute inset-y-0 left-0 w-full lg:w-[62%] xl:w-[60%] bg-gradient-to-r from-white/95 via-white/70 via-40% via-white/30 to-transparent pointer-events-none z-0" />
 
       {/* Modal Dialog */}
       {modal.isOpen && (
