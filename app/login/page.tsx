@@ -415,22 +415,17 @@ export default function LoginPage() {
             </Link>
 
             {/* Rodapé do Card */}
-            <div className="mt-5 pt-3.5 text-center space-y-2 border-t border-slate-100">
-              <div>
-                <Link
-                  href="/"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-teal-700 transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="19" y1="12" x2="5" y2="12" />
-                    <polyline points="12 19 5 12 12 5" />
-                  </svg>
-                  <span>Voltar à página inicial</span>
-                </Link>
-              </div>
-              <p className="text-[11px] text-slate-400 font-medium">
-                Sistema de gerenciamento de sessões de terapia • © 2025 Therapy Copilot
-              </p>
+            <div className="mt-5 pt-3.5 text-center border-t border-slate-100">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-teal-700 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+                <span>Voltar à página inicial</span>
+              </Link>
             </div>
           </div>
         </div>
