@@ -153,7 +153,10 @@ export default function Home() {
 
                 {/* Subtexto */}
                 <p className="text-sm sm:text-[15px] text-slate-700 leading-relaxed font-normal">
-                  O copiloto inteligente que organiza transcrições, identifica padrões e apoia sua rotina clínica — permitindo que você fique focado no que realmente importa: <strong className="font-semibold text-slate-900">o seu paciente.</strong>
+                  O copiloto inteligente que organiza transcrições, <br />
+                  identifica padrões e apoia sua rotina clínica<br />
+                  permitindo que você fique focado no que realmente<br />
+                  importa: <strong className="font-semibold text-slate-900">o seu paciente.</strong>
                 </p>
               </div>
 
