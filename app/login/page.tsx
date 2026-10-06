@@ -84,8 +84,8 @@ export default function LoginPage() {
         backgroundColor: "#E2F6F5"
       }}
     >
-      {/* Soft Gradient Layer on Left for Maximum Text Legibility (Extended to the Right) */}
-      <div className="absolute inset-y-0 left-0 w-full lg:w-[62%] xl:w-[60%] bg-gradient-to-r from-white/95 via-white/70 via-40% via-white/30 to-transparent pointer-events-none z-0" />
+      {/* Soft Gradient Layer on Left for Maximum Text Legibility */}
+      <div className="absolute inset-y-0 left-0 w-full lg:w-[50%] xl:w-[48%] bg-gradient-to-r from-white/95 via-white/60 to-transparent pointer-events-none z-0" />
 
       {/* Modal Dialog */}
       {modal.isOpen && (
@@ -143,18 +143,18 @@ export default function LoginPage() {
       )}
 
       {/* Main Responsive Grid Layout */}
-      <main className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4 items-center z-10">
+      <main className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center z-10">
         
         {/* ========================================================================= */}
         {/* LADO ESQUERDO: INSTITUCIONAL, HEADLINE & 4 CARDS DE BENEFÍCIOS            */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-5 xl:col-span-5 flex flex-col justify-between space-y-4 lg:space-y-5 max-w-[480px]">
+        <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between space-y-5 lg:space-y-6 max-w-[530px]">
           
           {/* 1. Header Brand & Linha de Destaque Teal */}
           <div>
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-700/20 border border-teal-500 shrink-0">
-                <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-700/25 border border-teal-500 shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="2">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -166,38 +166,38 @@ export default function LoginPage() {
                 </svg>
               </div>
               <div>
-                <span className="text-2xl font-black tracking-tight text-slate-900 block leading-tight">
+                <span className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 block leading-tight">
                   Cliniva
                 </span>
-                <span className="text-[11px] font-extrabold text-teal-600 tracking-wider uppercase">
+                <span className="text-xs font-extrabold text-teal-600 tracking-wider uppercase">
                   Therapy Copilots
                 </span>
               </div>
             </div>
             {/* Linha de Destaque Teal */}
-            <div className="w-10 h-1 bg-teal-500 rounded-full mt-3" />
+            <div className="w-12 h-1.5 bg-teal-500 rounded-full mt-3.5" />
           </div>
 
           {/* 2. Headline Principal */}
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl lg:text-[38px] font-black text-slate-900 tracking-tight leading-[1.12]">
+          <div className="space-y-3">
+            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-slate-900 tracking-tight leading-[1.12]">
               Seu consultório<br />
               mais produtivo,<br />
               <span className="text-[#00897B]">
                 humano e inteligente.
               </span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal max-w-md">
+            <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal max-w-lg">
               O copiloto que organiza sua rotina, acompanha seus atendimentos e te dá mais tempo para o que realmente importa: <strong className="font-semibold text-slate-900">cuidar de pessoas.</strong>
             </p>
           </div>
 
           {/* 3. Benefícios em Grade 2x2 com Cards Brancos Elevados */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 pt-1">
             
             {/* Card 1: Agenda inteligente */}
-            <div className="bg-white/95 rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-100/90 flex items-center gap-3 hover:border-teal-200 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
+            <div className="bg-white/95 rounded-2xl p-3.5 sm:p-4 shadow-sm border border-slate-100/90 flex items-center gap-3.5 hover:border-teal-200 transition-colors">
+              <div className="w-11 h-11 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                   <line x1="16" y1="2" x2="16" y2="6" />
@@ -209,28 +209,28 @@ export default function LoginPage() {
                 </svg>
               </div>
               <div className="min-w-0">
-                <h2 className="text-xs sm:text-[13px] font-extrabold text-slate-900 leading-tight">Agenda inteligente</h2>
-                <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate">Organize sua rotina com facilidade</p>
+                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">Agenda inteligente</h2>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Organize sua rotina com facilidade</p>
               </div>
             </div>
 
             {/* Card 2: Prontuário completo */}
-            <div className="bg-white/95 rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-100/90 flex items-center gap-3 hover:border-teal-200 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
+            <div className="bg-white/95 rounded-2xl p-3.5 sm:p-4 shadow-sm border border-slate-100/90 flex items-center gap-3.5 hover:border-teal-200 transition-colors">
+              <div className="w-11 h-11 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
               </div>
               <div className="min-w-0">
-                <h2 className="text-xs sm:text-[13px] font-extrabold text-slate-900 leading-tight">Prontuário completo</h2>
-                <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate">Tudo em um só lugar</p>
+                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">Prontuário completo</h2>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Tudo em um só lugar</p>
               </div>
             </div>
 
             {/* Card 3: Insights clínicos */}
-            <div className="bg-white/95 rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-100/90 flex items-center gap-3 hover:border-teal-200 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
+            <div className="bg-white/95 rounded-2xl p-3.5 sm:p-4 shadow-sm border border-slate-100/90 flex items-center gap-3.5 hover:border-teal-200 transition-colors">
+              <div className="w-11 h-11 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="20" x2="18" y2="10" />
                   <line x1="12" y1="20" x2="12" y2="4" />
@@ -238,22 +238,22 @@ export default function LoginPage() {
                 </svg>
               </div>
               <div className="min-w-0">
-                <h2 className="text-xs sm:text-[13px] font-extrabold text-slate-900 leading-tight">Insights clínicos</h2>
-                <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate">Dados que apoiam suas decisões</p>
+                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">Insights clínicos</h2>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Dados que apoiam suas decisões</p>
               </div>
             </div>
 
             {/* Card 4: Mais tempo para você */}
-            <div className="bg-white/95 rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-100/90 flex items-center gap-3 hover:border-teal-200 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
+            <div className="bg-white/95 rounded-2xl p-3.5 sm:p-4 shadow-sm border border-slate-100/90 flex items-center gap-3.5 hover:border-teal-200 transition-colors">
+              <div className="w-11 h-11 rounded-xl bg-teal-50 border border-teal-100/80 text-teal-600 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
               </div>
               <div className="min-w-0">
-                <h2 className="text-xs sm:text-[13px] font-extrabold text-slate-900 leading-tight">Mais tempo para você</h2>
-                <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate">Tecnologia a seu favor</p>
+                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">Mais tempo para você</h2>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Tecnologia a seu favor</p>
               </div>
             </div>
 
@@ -261,7 +261,7 @@ export default function LoginPage() {
 
           {/* 4. Quote no Rodapé da Esquerda */}
           <div className="pt-2 hidden sm:block">
-            <p className="text-xs text-slate-600 font-medium italic flex items-center gap-2">
+            <p className="text-xs sm:text-sm text-slate-600 font-medium italic flex items-center gap-2">
               <span className="w-4 h-0.5 bg-teal-500 rounded-full inline-block" />
               <span>&ldquo;Mais tecnologia. Mais cuidado. Mais pessoas.&rdquo;</span>
             </p>
@@ -271,7 +271,7 @@ export default function LoginPage() {
         {/* ========================================================================= */}
         {/* ESPAÇO CENTRAL: VAZIO PARA EXIBIÇÃO TOTAL DO ROBÔ E ÍCONES ORBITAIS       */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-2 xl:col-span-2 hidden lg:block pointer-events-none" />
+        <div className="lg:col-span-1 xl:col-span-2 hidden lg:block pointer-events-none" />
 
         {/* ========================================================================= */}
         {/* LADO DIREITO: CARD DE LOGIN ELEVADO & PREMIUM                             */}
