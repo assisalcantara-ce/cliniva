@@ -152,27 +152,12 @@ export default function LoginPage() {
           
           {/* 1. Header Brand & Linha de Destaque Teal */}
           <div>
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-700/25 border border-teal-500 shrink-0">
-                <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="2">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.5 19C8.5 16.5 10 15 11 14C10 13 9.5 11.5 10 9.5C10.8 6.5 13 5 16.5 5.5C19.5 6 20.5 8.5 20.5 11C20.5 13.5 19 15 18 16V17.5C18 18.5 17 19.5 16 20L15 20.5H10.5C9.5 20.5 8.5 19.8 8.5 19Z"
-                  />
-                  <circle cx="14" cy="9.5" r="1" fill="currentColor" stroke="none" />
-                  <circle cx="17" cy="9" r="1" fill="currentColor" stroke="none" />
-                  <circle cx="16" cy="12" r="1" fill="currentColor" stroke="none" />
-                </svg>
-              </div>
-              <div>
-                <span className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 block leading-tight">
-                  Cliniva
-                </span>
-                <span className="text-xs font-extrabold text-teal-600 tracking-wider uppercase">
-                  Therapy Copilots
-                </span>
-              </div>
+            <div className="flex items-center">
+              <img
+                src="/img/logo.png"
+                alt="Cliniva Therapy Copilots"
+                className="h-12 sm:h-14 w-auto object-contain"
+              />
             </div>
             {/* Linha de Destaque Teal */}
             <div className="w-12 h-1.5 bg-teal-500 rounded-full mt-3.5" />
@@ -281,28 +266,11 @@ export default function LoginPage() {
             
             {/* Header Brand Dentro do Card */}
             <div className="flex flex-col items-center justify-center text-center mb-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-sm">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.5 19C8.5 16.5 10 15 11 14C10 13 9.5 11.5 10 9.5C10.8 6.5 13 5 16.5 5.5C19.5 6 20.5 8.5 20.5 11C20.5 13.5 19 15 18 16V17.5C18 18.5 17 19.5 16 20L15 20.5H10.5C9.5 20.5 8.5 19.8 8.5 19Z"
-                    />
-                    <circle cx="14" cy="9.5" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="17" cy="9" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="16" cy="12" r="1" fill="currentColor" stroke="none" />
-                  </svg>
-                </div>
-                <div className="text-left">
-                  <span className="text-2xl font-black tracking-tight text-slate-900 block leading-none">
-                    Cliniva
-                  </span>
-                  <span className="text-[10px] font-extrabold text-teal-600 tracking-wider uppercase block mt-1">
-                    Therapy Copilots
-                  </span>
-                </div>
-              </div>
+              <img
+                src="/img/logo.png"
+                alt="Cliniva Therapy Copilots"
+                className="h-11 sm:h-12 w-auto object-contain mb-3"
+              />
 
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Acesse sua conta
