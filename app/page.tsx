@@ -58,22 +58,50 @@ export default function Home() {
       className={`${serif.variable} ${manrope.variable} min-h-screen bg-[#f8fbfb] text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900`}
       style={{ fontFamily: "var(--font-landing-sans)" }}
     >
-      {/* Top Header Navigation */}
-      <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-8 py-3.5">
+      {/* ========================================================================= */}
+      {/* 1. HEADER (LIMPO, BAIXO, ELEGANTE E COM NAVEGAÇÃO CENTRAL)               */}
+      {/* ========================================================================= */}
+      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs transition-all">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-8 py-3">
+          
+          {/* Logo Cliniva */}
           <Link href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
             <img src="/img/logo.png" alt="Cliniva Therapy Copilots" className="h-10 sm:h-11 w-auto object-contain" />
           </Link>
+
+          {/* Navegação Central */}
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-semibold text-slate-600">
+            <Link href="/" className="text-teal-700 hover:text-teal-800 transition-colors">
+              Início
+            </Link>
+            <Link href="#recursos" className="hover:text-teal-700 transition-colors">
+              Recursos
+            </Link>
+            <Link href="/planos" className="hover:text-teal-700 transition-colors">
+              Planos
+            </Link>
+            <Link href="#profissionais" className="hover:text-teal-700 transition-colors">
+              Para Profissionais
+            </Link>
+            <Link href="#blog" className="hover:text-teal-700 transition-colors">
+              Blog
+            </Link>
+            <Link href="#contato" className="hover:text-teal-700 transition-colors">
+              Contato
+            </Link>
+          </nav>
+
+          {/* Ações à Direita */}
           <div className="flex items-center gap-3">
             <Link
               href="/planos"
-              className="hidden sm:inline-flex items-center justify-center rounded-xl border border-teal-200 bg-teal-50/70 px-5 py-2.5 text-xs font-bold text-teal-800 transition hover:bg-teal-100/80"
+              className="hidden sm:inline-flex items-center justify-center rounded-xl border border-teal-200 bg-teal-50/70 px-4 py-2 text-xs font-bold text-teal-800 transition hover:bg-teal-100/80"
             >
               Ver planos
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center rounded-xl bg-[#00897B] px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-teal-700/20 transition hover:bg-[#00796B]"
+              className="inline-flex items-center justify-center rounded-xl bg-[#00897B] hover:bg-[#00796B] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-teal-700/20 transition-all hover:scale-[1.02]"
             >
               Acesso ao sistema →
             </Link>
@@ -82,104 +110,114 @@ export default function Home() {
       </header>
 
       {/* ========================================================================= */}
-      {/* FULL-WIDTH HERO SECTION (OCUPANDO TODA A ÁREA HORIZONTAL DA TELA)          */}
+      {/* 2. HERO SECTION (COM IMAGEM BG_HERO.PNG E COMPOSIÇÃO DE DUAS ÁREAS)        */}
       {/* ========================================================================= */}
-      <section className="relative w-full overflow-hidden bg-slate-950 min-h-[580px] lg:min-h-[640px] flex items-center">
-        {/* Background Full Width Image */}
-        <div 
-          className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-1000 ease-out"
-          style={{
-            backgroundImage: "url('/img/hero_consultation.jpg')",
-            backgroundPosition: "center 28%",
-          }}
-        />
+      <section 
+        className="relative w-full overflow-hidden bg-cover bg-center bg-no-repeat min-h-[580px] lg:min-h-[660px] flex items-center"
+        style={{
+          backgroundImage: "url('/img/bg_hero.png')",
+          backgroundColor: "#E4F4F3"
+        }}
+      >
+        {/* Camada Suave Translúcida à Esquerda para Contraste e Legibilidade Perfeita */}
+        <div className="absolute inset-y-0 left-0 w-full lg:w-[48%] xl:w-[45%] bg-gradient-to-r from-white/95 via-white/80 via-40% to-transparent pointer-events-none z-0" />
 
-        {/* Soft Cinematic Gradients & Contrast Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/35 lg:from-slate-950/92 lg:via-slate-950/70 lg:to-slate-950/20 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
-
-        {/* Hero Content Container */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-24">
-          <div className="max-w-2xl space-y-6">
+        {/* Container Principal do Hero */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 sm:py-16 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-950/60 backdrop-blur-md px-4 py-1.5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-teal-300">
-                Copiloto Clínico com IA Ética
-              </span>
+            {/* LADO ESQUERDO: TEXTO COMERCIAL, HEADLINE & CTAS */}
+            <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between space-y-5 max-w-[500px]">
+              
+              {/* Badge */}
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/80 bg-teal-50/90 px-3.5 py-1.5 shadow-2xs">
+                  <span className="text-teal-600 text-xs">✦</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-teal-800">
+                    COPILOTO CLÍNICO COM IA
+                  </span>
+                </div>
+              </div>
+
+              {/* Headline Principal */}
+              <div className="space-y-3">
+                <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-slate-900 tracking-tight leading-[1.12]">
+                  Mais presença no<br />
+                  atendimento.<br />
+                  <span className="text-[#00897B] underline decoration-teal-300 decoration-wavy decoration-2 underline-offset-4">
+                    Mais clareza
+                  </span>{" "}
+                  para<br />
+                  o seu consultório.
+                </h1>
+
+                {/* Subtexto */}
+                <p className="text-sm sm:text-[15px] text-slate-700 leading-relaxed font-normal">
+                  O copiloto inteligente que organiza transcrições, identifica padrões e apoia sua rotina clínica — permitindo que você fique focado no que realmente importa: <strong className="font-semibold text-slate-900">o seu paciente.</strong>
+                </p>
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap items-center gap-3.5 pt-1">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00897B] hover:bg-[#00796B] px-6 sm:px-7 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-teal-700/25 transition-all hover:scale-[1.02]"
+                >
+                  <span>Acessar o Cliniva</span>
+                  <span>→</span>
+                </Link>
+                <Link
+                  href="/planos"
+                  className="inline-flex items-center justify-center rounded-xl border border-teal-300 bg-white/80 hover:bg-white px-5 sm:px-6 py-3 text-xs sm:text-sm font-bold text-teal-800 transition-all shadow-xs"
+                >
+                  Conhecer Planos
+                </Link>
+              </div>
+
+              {/* 3 Benefícios de Confiança */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5 border-t border-slate-200/80">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <div className="w-5 h-5 rounded-md bg-teal-50 border border-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                  </div>
+                  <span className="leading-tight">Zero diagnósticos automáticos</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <div className="w-5 h-5 rounded-md bg-teal-50 border border-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </div>
+                  <span className="leading-tight">Conformidade com a LGPD</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <div className="w-5 h-5 rounded-md bg-teal-50 border border-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M8.5 19C8.5 16.5 10 15 11 14C10 13 9.5 11.5 10 9.5C10.8 6.5 13 5 16.5 5.5C19.5 6 20.5 8.5 20.5 11C20.5 13.5 19 15 18 16V17.5C18 18.5 17 19.5 16 20L15 20.5H10.5C9.5 20.5 8.5 19.8 8.5 19Z" />
+                    </svg>
+                  </div>
+                  <span className="leading-tight">IA com evidências clínicas</span>
+                </div>
+              </div>
+
             </div>
 
-            {/* Main Headline */}
-            <h1 
-              className="text-3xl sm:text-5xl lg:text-[54px] font-bold text-white tracking-tight leading-[1.12]"
-              style={{ fontFamily: "var(--font-landing-serif)" }}
-            >
-              Mais presença no atendimento.{" "}
-              <span className="text-teal-300 underline decoration-teal-400 decoration-wavy decoration-2 underline-offset-8">
-                Mais clareza
-              </span>{" "}
-              para o seu consultório.
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-200 leading-relaxed font-normal max-w-xl">
-              O copiloto inteligente que organiza transcrições, detecta padrões recorrentes e sugere hipóteses clínicas em tempo real — permitindo que você foque 100% no que realmente importa: <strong className="text-white font-semibold">o seu paciente</strong>.
-            </p>
-
-            {/* Call to Actions */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00897B] hover:bg-[#00796B] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-xl shadow-teal-700/30 transition-all hover:scale-[1.02]"
-              >
-                <span>Acessar o Cliniva</span>
-                <span className="text-lg leading-none">→</span>
-              </Link>
-              <Link
-                href="/planos"
-                className="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 backdrop-blur-md px-6 py-3.5 text-sm sm:text-base font-semibold text-white transition hover:bg-white/20 hover:border-white/50"
-              >
-                Conhecer Planos
-              </Link>
-            </div>
-
-            {/* Key Trust Highlights in Hero */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 border-t border-white/15">
-              <div className="flex items-center gap-2.5 text-xs text-slate-200 font-medium">
-                <div className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span>Zero diagnósticos automáticos</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs text-slate-200 font-medium">
-                <div className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span>Conformidade com a LGPD</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs text-slate-200 font-medium">
-                <div className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span>IA com evidências clínicas</span>
-              </div>
-            </div>
+            {/* LADO DIREITO: ESPAÇO LIVRE PARA EXIBIÇÃO DA CENA DO CONSULTÓRIO, ROBÔ COPILOTO E CARDS DA ARTE */}
+            <div className="lg:col-span-6 xl:col-span-7 hidden lg:block pointer-events-none min-h-[460px]" />
 
           </div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* SEÇÃO DE BENEFÍCIOS & PILARES                                             */}
+      {/* 3. SEÇÃO DE BENEFÍCIOS & PILARES                                          */}
       {/* ========================================================================= */}
-      <section className="mx-auto grid w-full max-w-7xl gap-12 px-6 sm:px-8 py-16 lg:py-20 lg:items-center lg:grid-cols-[1.1fr_0.9fr]">
+      <section id="recursos" className="mx-auto grid w-full max-w-7xl gap-12 px-6 sm:px-8 py-16 lg:py-20 lg:items-center lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-8 lg:pr-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-700">
@@ -248,9 +286,9 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* SEÇÃO ÉTICA E SEGURANÇA                                                   */}
+      {/* 4. SEÇÃO ÉTICA E SEGURANÇA                                                */}
       {/* ========================================================================= */}
-      <section className="mx-auto w-full max-w-7xl px-6 sm:px-8 pb-16">
+      <section id="profissionais" className="mx-auto w-full max-w-7xl px-6 sm:px-8 pb-16">
         <div className="grid gap-8 rounded-3xl border border-teal-100 bg-white p-8 sm:p-10 shadow-sm lg:grid-cols-[1.1fr_0.9fr] items-center">
           <div className="space-y-4">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-700">
@@ -287,7 +325,7 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* SEÇÃO DE CHAMADA FINAL (CTA)                                              */}
+      {/* 5. SEÇÃO DE CHAMADA FINAL (CTA)                                           */}
       {/* ========================================================================= */}
       <section className="mx-auto w-full max-w-7xl px-6 sm:px-8 pb-20">
         <div className="rounded-[36px] bg-slate-950 px-8 sm:px-12 py-12 sm:py-16 text-white shadow-2xl relative overflow-hidden">
@@ -340,7 +378,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 space-y-1">
+      <footer id="contato" className="w-full border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 space-y-1">
         <p className="font-semibold text-slate-700">Cliniva — Copiloto clínico com IA para profissionais de saúde mental.</p>
         <p>Suporte humano + IA para uma prática clínica mais organizada, ética e segura • © 2025 Cliniva</p>
       </footer>
