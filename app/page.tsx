@@ -83,9 +83,6 @@ export default function Home() {
             <Link href="#profissionais" className="hover:text-teal-700 transition-colors">
               Para Profissionais
             </Link>
-            <Link href="#blog" className="hover:text-teal-700 transition-colors">
-              Blog
-            </Link>
             <Link href="#contato" className="hover:text-teal-700 transition-colors">
               Contato
             </Link>
