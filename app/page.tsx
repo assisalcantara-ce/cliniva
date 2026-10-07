@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DM_Serif_Display, Manrope } from "next/font/google";
 import { ContactSection } from "@/components/landing/ContactSection";
+import { EthicsSection } from "@/components/landing/EthicsSection";
 
 const serif = DM_Serif_Display({
   weight: "400",
@@ -282,17 +283,9 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. SEÇÃO ÉTICA E SEGURANÇA (MODELO FULL-WIDTH BANNER)                     */}
+      {/* 4. SEÇÃO ÉTICA E SEGURANÇA (MODELO FULL-WIDTH COMPONENTE INTERATIVO)      */}
       {/* ========================================================================= */}
-      <section id="profissionais" className="w-full pb-16 sm:pb-24">
-        <div className="w-full overflow-hidden">
-          <img
-            src="/img/bg_ethics.png"
-            alt="Ética e Segurança — Sugestões baseadas em contexto e evidências, nunca diagnósticos"
-            className="w-full h-auto object-cover"
-          />
-        </div>
-      </section>
+      <EthicsSection />
 
       {/* ========================================================================= */}
       {/* 5. SEÇÃO DE CHAMADA FINAL (CTA)                                           */}
