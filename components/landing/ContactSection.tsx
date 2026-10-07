@@ -24,7 +24,7 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contato" className="mx-auto w-full max-w-7xl px-6 sm:px-8 py-16 sm:py-24 scroll-mt-20">
+    <section id="contato" className="mx-auto w-full max-w-7xl px-6 sm:px-8 pt-0 pb-16 sm:pb-24 scroll-mt-20">
       <div className="rounded-[36px] bg-gradient-to-b from-white to-slate-50/80 border border-slate-200/90 p-8 sm:p-12 lg:p-16 shadow-xl shadow-slate-100 relative overflow-hidden">
         {/* Glow de fundo */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />

@@ -36,7 +36,7 @@ export function EthicsSection() {
   ];
 
   return (
-    <section id="profissionais" className="relative w-full overflow-hidden bg-[#eaf6f5] py-16 sm:py-20 lg:py-24 mb-16 sm:mb-24 lg:mb-28">
+    <section id="profissionais" className="relative w-full overflow-hidden bg-[#eaf6f5] py-14 sm:py-16 lg:py-20">
       {/* Background Image da Terapeuta com fade e overlay na horizontal */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"

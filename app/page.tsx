@@ -290,7 +290,7 @@ export default function Home() {
       {/* ========================================================================= */}
       {/* 5. SEÇÃO DE CHAMADA FINAL (CTA)                                           */}
       {/* ========================================================================= */}
-      <section className="mx-auto w-full max-w-7xl px-6 sm:px-8 pb-20 sm:pb-28">
+      <section className="mx-auto w-full max-w-7xl px-6 sm:px-8 py-10 sm:py-12 lg:py-14">
         <div className="rounded-[36px] bg-slate-950 px-8 sm:px-12 py-12 sm:py-16 text-white shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
           
