@@ -47,11 +47,6 @@ const steps = [
   },
 ];
 
-const trustItems = [
-  "Consentimento obrigatório para qualquer gravação ou transcrição.",
-  "Dados sensíveis e clínicos tratados com sigilo rigoroso e criptografia.",
-  "Sem diagnósticos, prescrições ou decisões automatizadas — apenas suporte reflexivo.",
-];
 
 export default function Home() {
   return (
@@ -287,41 +282,15 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. SEÇÃO ÉTICA E SEGURANÇA                                                */}
+      {/* 4. SEÇÃO ÉTICA E SEGURANÇA (MODELO FULL-WIDTH BANNER)                     */}
       {/* ========================================================================= */}
-      <section id="profissionais" className="mx-auto w-full max-w-7xl px-6 sm:px-8 pb-16">
-        <div className="grid gap-8 rounded-3xl border border-teal-100 bg-white p-8 sm:p-10 shadow-sm lg:grid-cols-[1.1fr_0.9fr] items-center">
-          <div className="space-y-4">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-700">
-              Ética e segurança
-            </p>
-            <h2
-              className="text-3xl font-semibold text-slate-900"
-              style={{ fontFamily: "var(--font-landing-serif)" }}
-            >
-              Sugestões baseadas em contexto e evidências, nunca diagnósticos.
-            </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-              O Cliniva organiza insights, perguntas e hipóteses com apontamentos claros de
-              evidências. Ele foi pensado para ampliar a atenção do profissional, não para
-              substituir julgamento clínico, diagnóstico ou conduta terapêutica.
-            </p>
-          </div>
-          <div className="grid gap-3.5">
-            {trustItems.map((item) => (
-              <div
-                key={item}
-                className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
-              >
-                <div className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm font-medium text-slate-700">{item}</p>
-              </div>
-            ))}
-          </div>
+      <section id="profissionais" className="w-full pb-16 sm:pb-24">
+        <div className="w-full overflow-hidden">
+          <img
+            src="/img/bg_ethics.png"
+            alt="Ética e Segurança — Sugestões baseadas em contexto e evidências, nunca diagnósticos"
+            className="w-full h-auto object-cover"
+          />
         </div>
       </section>
 
