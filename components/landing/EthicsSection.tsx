@@ -39,15 +39,11 @@ export function EthicsSection() {
     <section id="profissionais" className="relative w-full overflow-hidden bg-[#eaf6f5] py-16 sm:py-20 lg:py-24 mb-16 sm:mb-24 lg:mb-28">
       {/* Background Image da Terapeuta com fade e overlay na horizontal */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-left md:bg-[left_center] bg-no-repeat opacity-90"
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/img/hero_consultation.jpg')",
+          backgroundImage: "url('/img/bg_ethics1.png')",
         }}
       />
-
-      {/* Gradiente suave da esquerda para a direita para transição perfeita de consultório para o tom Cliniva */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-900/10 via-[#eaf6f5]/85 to-[#eaf6f5] pointer-events-none" />
-      <div className="absolute inset-0 z-0 bg-gradient-to-t from-[#eaf6f5] via-transparent to-[#eaf6f5]/60 pointer-events-none" />
 
       {/* Container Centralizado para o Card Flutuante */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center lg:justify-end">
