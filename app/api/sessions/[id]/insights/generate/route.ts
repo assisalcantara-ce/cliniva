@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { generateInsightsFromTranscript } from "@/lib/ai/generateInsights";
-import { getTherapistIdFromRequest } from "@/lib/auth";
+import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPatientMemory } from "@/lib/db/patientMemory";
 
@@ -43,10 +43,45 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
+  let therapistId: string;
+  try {
+    therapistId = getTherapistIdFromRequest(req);
+  } catch (err: unknown) {
+    const code =
+      typeof err === "object" && err !== null && "code" in err
+        ? String((err as { code?: unknown }).code)
+        : "UNAUTHENTICATED";
+    const { error, status } = authError(code);
+    return NextResponse.json({ error }, { status });
+  }
+
   const { id } = await params;
   const sessionId = z.string().min(1).parse(id);
+
   try {
     const supabase = createSupabaseAdminClient();
+
+    // 1. Verifica se a sessão existe e pertence ao terapeuta autenticado
+    const sessionResult = await supabase
+      .from("sessions")
+      .select("id, patient_id, therapist_id")
+      .eq("id", sessionId)
+      .eq("therapist_id", therapistId)
+      .maybeSingle();
+
+    if (sessionResult.error) {
+      return NextResponse.json(
+        { error: sessionResult.error.message },
+        { status: 500 },
+      );
+    }
+
+    if (!sessionResult.data) {
+      return NextResponse.json(
+        { error: "Sessão não encontrada" },
+        { status: 404 },
+      );
+    }
 
     const chunksResult = await supabase
       .from("transcript_chunks")
@@ -83,15 +118,6 @@ export async function POST(
       );
     }
 
-    const therapistId = getTherapistIdFromRequest(req);
-
-    // Busca patient_id da sessão para ler/atualizar memória clínica
-    const sessionResult = await supabase
-      .from("sessions")
-      .select("patient_id")
-      .eq("id", sessionId)
-      .maybeSingle();
-
     const patientId: string | null =
       sessionResult.data && typeof sessionResult.data.patient_id === "string"
         ? sessionResult.data.patient_id
@@ -102,6 +128,7 @@ export async function POST(
       ? await getPatientMemory({ patientId, therapistId })
       : null;
     const patientMemory = memoryRow?.summary ?? undefined;
+
 
     const { package: pkg, fallbackReason, provider, isFullAI } = await generateInsightsFromTranscript({
       chunks,

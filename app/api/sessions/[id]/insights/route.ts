@@ -3,18 +3,55 @@ import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPatientMemory } from "@/lib/db/patientMemory";
-import { getTherapistIdFromRequest } from "@/lib/auth";
+import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Valida se a sessão existe e pertence ao terapeuta autenticado.
+ */
+async function getOwnedSession(sessionId: string, therapistId: string) {
+  const supabase = createSupabaseAdminClient();
+  const sessionQuery = await supabase
+    .from("sessions")
+    .select("id, patient_id, therapist_id")
+    .eq("id", sessionId)
+    .eq("therapist_id", therapistId)
+    .maybeSingle();
+
+  if (sessionQuery.error) {
+    throw new Error(`Erro ao verificar sessão: ${sessionQuery.error.message}`);
+  }
+
+  return sessionQuery.data;
+}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? String((err as { code?: unknown }).code)
+          : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const { id } = await params;
     const sessionId = z.string().min(1).parse(id);
+
+    const session = await getOwnedSession(sessionId, therapistId);
+    if (!session) {
+      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+    }
+
     const supabase = createSupabaseAdminClient();
 
     const result = await supabase
@@ -28,22 +65,11 @@ export async function GET(
       return NextResponse.json({ error: result.error.message }, { status: 500 });
     }
 
-    // Busca patient_id da sessão para carregar memória clínica
+    // Busca memória clínica usando o patient_id verificado
     let patientMemory: string | null = null;
     try {
-      const sessionResult = await supabase
-        .from("sessions")
-        .select("patient_id")
-        .eq("id", sessionId)
-        .maybeSingle();
-
-      const patientId =
-        typeof sessionResult.data?.patient_id === "string"
-          ? sessionResult.data.patient_id
-          : null;
-
+      const patientId = typeof session.patient_id === "string" ? session.patient_id : null;
       if (patientId) {
-        const therapistId = getTherapistIdFromRequest(req);
         const memRow = await getPatientMemory({ patientId, therapistId });
         patientMemory = memRow?.summary ?? null;
       }
@@ -59,12 +85,30 @@ export async function GET(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? String((err as { code?: unknown }).code)
+          : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const { id } = await params;
     const sessionId = z.string().min(1).parse(id);
+
+    const session = await getOwnedSession(sessionId, therapistId);
+    if (!session) {
+      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+    }
+
     const supabase = createSupabaseAdminClient();
 
     const result = await supabase
@@ -83,3 +127,4 @@ export async function DELETE(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+

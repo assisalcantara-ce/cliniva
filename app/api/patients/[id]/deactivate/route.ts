@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? String((err as { code?: unknown }).code)
+          : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const { id } = await params;
     const patientId = id;
     const body = await req.json();
@@ -30,8 +43,9 @@ export async function PATCH(
       .from("patients")
       .update({ is_active: parsed.data.is_active })
       .eq("id", patientId)
+      .eq("therapist_id", therapistId)
       .select("id, full_name, is_active")
-      .single();
+      .maybeSingle();
 
     if (result.error) {
       if (result.error.message.includes("is_active")) {
@@ -43,6 +57,13 @@ export async function PATCH(
       return NextResponse.json(
         { error: result.error.message },
         { status: 500 }
+      );
+    }
+
+    if (!result.data) {
+      return NextResponse.json(
+        { error: "Paciente não encontrado" },
+        { status: 404 }
       );
     }
 
@@ -60,3 +81,4 @@ export async function PATCH(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+

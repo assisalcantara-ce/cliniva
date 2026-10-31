@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,15 +18,51 @@ const deleteChunkSchema = z.object({
   chunk_id: z.string().min(1),
 });
 
+/**
+ * Valida se a sessão existe e pertence ao terapeuta autenticado.
+ */
+async function verifySessionOwnership(sessionId: string, therapistId: string) {
+  const supabase = createSupabaseAdminClient();
+  const sessionQuery = await supabase
+    .from("sessions")
+    .select("id, therapist_id")
+    .eq("id", sessionId)
+    .eq("therapist_id", therapistId)
+    .maybeSingle();
+
+  if (sessionQuery.error) {
+    throw new Error(`Erro ao verificar sessão: ${sessionQuery.error.message}`);
+  }
+
+  return Boolean(sessionQuery.data);
+}
+
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? String((err as { code?: unknown }).code)
+          : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const { id } = await params;
     const sessionId = z.string().min(1).parse(id);
-    const supabase = createSupabaseAdminClient();
 
+    const hasAccess = await verifySessionOwnership(sessionId, therapistId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+    }
+
+    const supabase = createSupabaseAdminClient();
     const result = await supabase
       .from("transcript_chunks")
       .select("id, session_id, text, speaker, t_start_seconds, t_end_seconds, created_at")
@@ -51,8 +88,26 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? String((err as { code?: unknown }).code)
+          : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const { id } = await params;
     const sessionId = z.string().min(1).parse(id);
+
+    const hasAccess = await verifySessionOwnership(sessionId, therapistId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+    }
+
     const body = await req.json();
     const parsed = createChunkSchema.safeParse(body);
     if (!parsed.success) {
@@ -96,8 +151,26 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? String((err as { code?: unknown }).code)
+          : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const { id } = await params;
     const sessionId = z.string().min(1).parse(id);
+
+    const hasAccess = await verifySessionOwnership(sessionId, therapistId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+    }
+
     const body = await req.json();
     const parsed = deleteChunkSchema.safeParse(body);
     if (!parsed.success) {
@@ -135,3 +208,4 @@ export async function DELETE(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+

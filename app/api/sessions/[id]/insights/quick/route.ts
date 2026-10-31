@@ -13,12 +13,41 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } },
 ) {
+  let therapistId: string;
+  try {
+    therapistId = getTherapistIdFromRequest(req);
+  } catch (err: unknown) {
+    const code =
+      typeof err === "object" && err !== null && "code" in err
+        ? String((err as { code?: unknown }).code)
+        : "UNAUTHENTICATED";
+    return NextResponse.json(
+      { error: code === "UNAUTHENTICATED" ? "Não autenticado" : "Token inválido" },
+      { status: 401 },
+    );
+  }
+
   const { id } = await params;
   const sessionId = z.string().min(1).parse(id);
 
   try {
-    const therapistId = getTherapistIdFromRequest(req);
     const supabase = createSupabaseAdminClient();
+
+    // 1. Verifica se a sessão existe e pertence ao terapeuta autenticado
+    const sessionResult = await supabase
+      .from("sessions")
+      .select("id, patient_id, therapist_id")
+      .eq("id", sessionId)
+      .eq("therapist_id", therapistId)
+      .maybeSingle();
+
+    if (sessionResult.error) {
+      return NextResponse.json({ error: sessionResult.error.message }, { status: 500 });
+    }
+
+    if (!sessionResult.data) {
+      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+    }
 
     const chunksResult = await supabase
       .from("transcript_chunks")
@@ -48,13 +77,6 @@ export async function POST(
       );
     }
 
-    // Lê patient_id da sessão para injetar memória clínica no prompt
-    const sessionResult = await supabase
-      .from("sessions")
-      .select("patient_id")
-      .eq("id", sessionId)
-      .maybeSingle();
-
     const patientId: string | null =
       sessionResult.data && typeof sessionResult.data.patient_id === "string"
         ? sessionResult.data.patient_id
@@ -63,6 +85,7 @@ export async function POST(
     const memoryRow = patientId
       ? await getPatientMemory({ patientId, therapistId })
       : null;
+
     const patientMemory = memoryRow?.summary ?? undefined;
 
     const result = await generateQuickInsights({ chunks, therapistId, patientMemory });
