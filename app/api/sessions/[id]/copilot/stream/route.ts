@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { realtimeEventBroker } from "@/lib/copilot/realtime/broker/eventBroker";
+import { getTherapistEntitlements } from "@/lib/plans/entitlements";
 import type { SSEEvent } from "@/lib/copilot/realtime/broker/types";
 
 export const runtime = "nodejs";
@@ -45,7 +46,26 @@ export async function GET(
   }
   const sessionId = parsedSessionId.data;
 
-  // 1. Validação de Propriedade da Sessão (therapist_id deve conferir com o usuário autenticado)
+  // 1. Verificação de Direitos do Plano (Entitlements) para Copiloto ao Vivo
+  try {
+    const entitlement = await getTherapistEntitlements(therapistId);
+    if (!entitlement.canUseFeature("copilot_live_suggestions")) {
+      return NextResponse.json(
+        {
+          error: "O Copiloto ao vivo durante a sessão é exclusivo dos planos Premium e Profissional. Atualize seu plano para ter acesso a sugestões em tempo real.",
+          code: "FEATURE_NOT_PERMITTED",
+        },
+        { status: 403 }
+      );
+    }
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { error: "Erro ao verificar direitos do plano do terapeuta." },
+      { status: 500 }
+    );
+  }
+
+  // 2. Validação de Propriedade da Sessão (therapist_id deve conferir com o usuário autenticado)
   try {
     const supabase = createSupabaseAdminClient();
     const sessionQuery = await supabase
@@ -81,7 +101,7 @@ export async function GET(
     );
   }
 
-  // 2. Criação do Stream SSE com ReadableStream
+  // 3. Criação do Stream SSE com ReadableStream
   let unsubscribe: (() => void) | null = null;
   let heartbeatTimer: NodeJS.Timeout | null = null;
 

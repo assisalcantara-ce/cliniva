@@ -5,6 +5,8 @@ import { generateInsightsFromTranscript } from "@/lib/ai/generateInsights";
 import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPatientMemory } from "@/lib/db/patientMemory";
+import { getTherapistEntitlements } from "@/lib/plans/entitlements";
+import { reserveCorporateAiQuota, refundCorporateAiQuota } from "@/lib/plans/quotas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,9 +61,48 @@ export async function POST(
   const sessionId = z.string().min(1).parse(id);
 
   try {
+    // 1. Verificação Estrita de Direitos do Plano (Entitlements)
+    const entitlement = await getTherapistEntitlements(therapistId);
+
+    if (entitlement.status === "trial_expired") {
+      return NextResponse.json(
+        {
+          error: "Seu período de teste gratuito de 7 dias expirou. Faça upgrade de plano para gerar novas análises de IA.",
+          code: "TRIAL_EXPIRED",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (entitlement.status === "cancelled" || entitlement.status === "inactive") {
+      return NextResponse.json(
+        {
+          error: "Sua assinatura não está ativa. Ative seu plano para utilizar os recursos de inteligência artificial.",
+          code: "SUBSCRIPTION_INACTIVE",
+        },
+        { status: 403 },
+      );
+    }
+
+    // 2. Reserva Atômica ANTECIPADA da Franquia de IA Corporativa ANTES da OpenAI
+    // Garante que requisições concorrentes não ultrapassem o limite contratado
+    const quotaReservation = await reserveCorporateAiQuota({ therapistId, entitlement });
+    if (!quotaReservation.allowed) {
+      return NextResponse.json(
+        {
+          error: quotaReservation.error ?? "Limite de análises da IA Corporativa atingido.",
+          code: "QUOTA_EXCEEDED",
+          currentUsage: quotaReservation.currentUsage,
+          maxAllowed: quotaReservation.maxAllowed,
+          period: quotaReservation.period,
+        },
+        { status: 429 },
+      );
+    }
+
     const supabase = createSupabaseAdminClient();
 
-    // 1. Verifica se a sessão existe e pertence ao terapeuta autenticado
+    // 3. Verifica se a sessão existe e pertence ao terapeuta autenticado
     const sessionResult = await supabase
       .from("sessions")
       .select("id, patient_id, therapist_id")
@@ -113,7 +154,7 @@ export async function POST(
 
     if (chunks.length === 0) {
       return NextResponse.json(
-        { error: "Sessão sem transcrição. Adicione chunks antes de gerar IA." },
+        { error: "Sessão sem anotações ou transcrição. Adicione notas antes de gerar IA." },
         { status: 400 },
       );
     }
@@ -128,7 +169,6 @@ export async function POST(
       ? await getPatientMemory({ patientId, therapistId })
       : null;
     const patientMemory = memoryRow?.summary ?? undefined;
-
 
     const { package: pkg, fallbackReason, provider, isFullAI } = await generateInsightsFromTranscript({
       chunks,
@@ -189,10 +229,18 @@ export async function POST(
         isFullAI,
         patientMemory: patientMemory ?? null,
         fallback: fallbackReason ? { used: true, reason: fallbackReason } : { used: false },
+        quota: {
+          currentUsage: quotaReservation.currentUsage,
+          maxAllowed: quotaReservation.maxAllowed,
+          period: quotaReservation.period,
+        },
       },
       { status: 200 },
     );
   } catch (error) {
+    // Estorno atômico em caso de falha crítica na OpenAI ou no banco de dados
+    await refundCorporateAiQuota({ therapistId, entitlement: (await getTherapistEntitlements(therapistId).catch(() => null)) as any }).catch(() => {});
+
     const message = error instanceof Error ? error.message : "Unknown error";
     const isOpenAI = message.startsWith("OpenAI") || message.includes("OpenAI");
     const isAIModeration =

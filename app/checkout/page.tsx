@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DM_Serif_Display, Manrope } from "next/font/google";
+import { PLANS_CATALOG, type PlanId } from "@/lib/plans/catalog";
 
 const serif = DM_Serif_Display({
   weight: "400",
@@ -75,10 +76,18 @@ function formatPrice(cents: number): string {
   });
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const isTrialMode = searchParams.get("trial") === "true";
+  const planParam = searchParams.get("plan");
+
+  const [selectedPlanId, setSelectedPlanId] = useState<PlanId>(() => {
+    if (planParam === "essencial") return "essencial";
+    if (planParam === "premium") return "premium";
+    return "profissional";
+  });
 
   const [step, setStep] = useState<Step>(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -114,9 +123,9 @@ export default function CheckoutPage() {
   function validateStep1(): string | null {
     if (form.name.trim().length < 2) return "Nome deve ter pelo menos 2 caracteres.";
     if (!form.email.includes("@")) return "Email inválido.";
-    if (onlyDigits(form.cpf).length !== 11) return "CPF inválido (11 dígitos).";
+    if (!isTrialMode && onlyDigits(form.cpf).length !== 11) return "CPF inválido (11 dígitos).";
     const phoneDigits = onlyDigits(form.phone);
-    if (phoneDigits.length < 10) return "Telefone inválido.";
+    if (phoneDigits.length < 10) return "Telefone inválido com DDD.";
     if (form.password.length < 8) return "Senha mínima de 8 caracteres.";
     if (form.password !== form.confirmPassword) return "As senhas não coincidem.";
     return null;
@@ -132,7 +141,48 @@ export default function CheckoutPage() {
     setStep(2);
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit do Trial de 7 Dias (Sem Cartão) ────────────────────────────────
+
+  async function handleTrialSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const err = validateStep1();
+    if (err) {
+      setError(err);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/trial/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          phone: onlyDigits(form.phone),
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error ?? "Não foi possível iniciar o teste gratuito.");
+        return;
+      }
+
+      // Redireciona para login informando sucesso na ativação do trial
+      router.push("/login?trial_started=true");
+    } catch {
+      setError("Erro de conexão ao ativar teste gratuito. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ── Submit de Assinatura Paga Regular (Via Asaas) ─────────────────────────
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -156,6 +206,7 @@ export default function CheckoutPage() {
         phone: onlyDigits(form.phone),
         password: form.password,
         billingType: form.billingType,
+        planId: selectedPlanId,
       };
 
       if (form.billingType === "CREDIT_CARD") {
@@ -215,109 +266,200 @@ export default function CheckoutPage() {
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
+  const plan = PLANS_CATALOG[selectedPlanId] || PLANS_CATALOG.profissional;
+
   return (
     <main
       className={`${serif.variable} ${manrope.variable} min-h-screen bg-[#eef7f4] text-slate-900`}
       style={{ fontFamily: "var(--font-landing-sans)" }}
     >
-      {/* Gradientes decorativos */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(20,184,166,0.15),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(59,130,246,0.12),transparent_50%)]" />
-      </div>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(20,184,166,0.18),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(59,130,246,0.14),transparent_50%)]" />
 
-      {/* Header */}
-      <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/">
-          <img src="/img/logo3.png" alt="Cliniva" className="h-[65px] w-[140px] object-contain" />
-        </Link>
-        <Link
-          href="/planos"
-          className="rounded-full border border-emerald-200 bg-white/80 px-5 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:bg-white"
-        >
-          ← Voltar aos planos
-        </Link>
-      </header>
+        {/* Header */}
+        <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
+          <Link href="/planos">
+            <img src="/img/logo3.png" alt="Cliniva" className="h-[65px] w-[140px] object-contain" />
+          </Link>
 
-      {/* Corpo */}
-      <div className="relative z-10 mx-auto w-full max-w-5xl px-6 pb-16 pt-2">
-        {/* Stepper */}
-        <div className="mb-6 flex items-center gap-3">
-          <StepBadge n={1} active={step === 1} done={step > 1} label="Dados pessoais" />
-          <div className="h-px flex-1 bg-slate-200" />
-          <StepBadge n={2} active={step === 2} done={false} label="Pagamento" />
-        </div>
+          <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
+            <Link href="/planos" className="hover:text-emerald-700">
+              Ver todos os planos
+            </Link>
+            <Link href="/login" className="rounded-full bg-white px-4 py-2 shadow-sm hover:bg-slate-50">
+              Já tenho conta
+            </Link>
+          </div>
+        </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          {/* Formulário */}
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-[28px] border border-emerald-100 bg-white/95 p-8 shadow-xl"
-          >
-            {step === 1 && (
-              <Step1
-                form={form}
-                setField={setField}
-                error={error}
-                onNext={handleNextStep}
-              />
-            )}
-            {step === 2 && (
-              <Step2
-                form={form}
-                setField={setField}
-                setCardField={setCardField}
-                error={error}
-                isLoading={isLoading}
-                onBack={() => { setError(null); setStep(1); }}
-              />
-            )}
-          </form>
+        {/* Conteúdo Principal */}
+        <div className="relative z-10 mx-auto max-w-5xl px-6 pb-20 pt-4">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            {/* Coluna da Esquerda: Formulário */}
+            <div className="rounded-[28px] border border-emerald-100 bg-white/95 p-8 shadow-xl">
+              {isTrialMode ? (
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-800 mb-3">
+                    Teste Gratuito • 7 Dias
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">
+                    Crie sua conta para começar
+                  </h1>
+                  <p className="text-xs text-slate-600 mb-6">
+                    Acesso imediato ao plano Profissional com página pública, agendamento e análises assistivas. Sem cartão de crédito.
+                  </p>
 
-          {/* Resumo do plano */}
-          <PlanSummary />
+                  <form onSubmit={handleTrialSubmit} className="space-y-4">
+                    <Field label="Nome completo do profissional *">
+                      <input
+                        className={inputCls}
+                        placeholder="Ex: Dra. Cristiane Alcântara"
+                        value={form.name}
+                        onChange={(e) => setField("name", e.target.value)}
+                        required
+                      />
+                    </Field>
+
+                    <Field label="E-mail profissional *">
+                      <input
+                        type="email"
+                        className={inputCls}
+                        placeholder="seu.email@exemplo.com"
+                        value={form.email}
+                        onChange={(e) => setField("email", e.target.value)}
+                        required
+                      />
+                    </Field>
+
+                    <Field label="WhatsApp com DDD *">
+                      <input
+                        className={inputCls}
+                        placeholder="(11) 99999-0000"
+                        value={form.phone}
+                        onChange={(e) => setField("phone", maskPhone(e.target.value))}
+                        required
+                      />
+                    </Field>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Senha *">
+                        <input
+                          type="password"
+                          className={inputCls}
+                          placeholder="Mínimo 8 dígitos"
+                          value={form.password}
+                          onChange={(e) => setField("password", e.target.value)}
+                          required
+                        />
+                      </Field>
+
+                      <Field label="Confirmar Senha *">
+                        <input
+                          type="password"
+                          className={inputCls}
+                          placeholder="Repita a senha"
+                          value={form.confirmPassword}
+                          onChange={(e) => setField("confirmPassword", e.target.value)}
+                          required
+                        />
+                      </Field>
+                    </div>
+
+                    {error && <ErrorBox message={error} />}
+
+                    <p className="text-[11px] text-slate-500 pt-2">
+                      Ao iniciar o teste, você concorda com os Termos de Uso e Política de Privacidade do Cliniva. Seus dados clínicos permanecem confidenciais.
+                    </p>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-3.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-md transition text-sm"
+                    >
+                      {isLoading ? "Ativando teste gratuito..." : "Começar 7 Dias Grátis Agora"}
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <div>
+                  {/* Seletor de Plano Rápido */}
+                  <div className="mb-6 border-b border-slate-100 pb-4">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                      Plano Selecionado:
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["essencial", "premium", "profissional"] as const).map((pId) => {
+                        const pInfo = PLANS_CATALOG[pId];
+                        const isSel = selectedPlanId === pId;
+                        return (
+                          <button
+                            key={pId}
+                            type="button"
+                            onClick={() => setSelectedPlanId(pId)}
+                            className={`p-2.5 rounded-xl border text-left transition ${
+                              isSel
+                                ? "border-teal-600 bg-teal-50/70 shadow-sm"
+                                : "border-slate-200 bg-white hover:border-slate-300"
+                            }`}
+                          >
+                            <p className="text-xs font-bold text-slate-900 truncate">{pInfo.name.replace("Cliniva ", "")}</p>
+                            <p className="text-xs font-semibold text-teal-800">{pInfo.priceFormatted}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {step === 1 ? (
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900 mb-4">1. Identificação Profissional</h2>
+                      <Step1
+                        form={form}
+                        setField={setField}
+                        error={error}
+                        onNext={handleNextStep}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900 mb-4">2. Pagamento Seguro Asaas</h2>
+                      <form onSubmit={handleSubmit}>
+                        <Step2
+                          form={form}
+                          setField={setField}
+                          setCardField={setCardField}
+                          error={error}
+                          isLoading={isLoading}
+                          onBack={() => setStep(1)}
+                        />
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Coluna da Direita: Resumo do Plano Contratado */}
+            <div>
+              <PlanSummary plan={plan} isTrial={isTrialMode} />
+            </div>
+          </div>
         </div>
       </div>
     </main>
   );
 }
 
-// ─── Step badge ──────────────────────────────────────────────────────────────
-
-function StepBadge({
-  n,
-  active,
-  done,
-  label,
-}: {
-  n: number;
-  active: boolean;
-  done: boolean;
-  label: string;
-}) {
+export default function CheckoutPage() {
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold transition ${
-          done
-            ? "bg-emerald-600 text-white"
-            : active
-              ? "bg-emerald-600 text-white"
-              : "bg-slate-200 text-slate-500"
-        }`}
-      >
-        {done ? "✓" : n}
-      </div>
-      <span
-        className={`text-sm font-semibold ${active || done ? "text-slate-900" : "text-slate-400"}`}
-      >
-        {label}
-      </span>
-    </div>
+    <Suspense fallback={<div className="min-h-screen bg-[#eef7f4] flex items-center justify-center p-8">Carregando checkout...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
 
-// ─── Step 1: Dados pessoais ──────────────────────────────────────────────────
+// ─── Subcomponentes ──────────────────────────────────────────────────────────
 
 function Step1({
   form,
@@ -331,32 +473,22 @@ function Step1({
   onNext: () => void;
 }) {
   return (
-    <div className="space-y-5">
-      <div>
-        <h2
-          className="text-2xl font-semibold text-slate-900"
-          style={{ fontFamily: "var(--font-landing-serif)" }}
-        >
-          Crie sua conta
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">Seus dados de acesso ao Cliniva.</p>
-      </div>
-
-      <Field label="Nome completo">
+    <div className="space-y-4">
+      <Field label="Nome completo *">
         <input
           className={inputCls}
-          placeholder="Dra. Maria Silva"
+          placeholder="Ex: Dra. Cristiane Alcântara"
           value={form.name}
           onChange={(e) => setField("name", e.target.value)}
           required
         />
       </Field>
 
-      <Field label="Email profissional">
+      <Field label="E-mail profissional *">
         <input
           type="email"
           className={inputCls}
-          placeholder="voce@clinica.com.br"
+          placeholder="seu.email@exemplo.com"
           value={form.email}
           onChange={(e) => setField("email", e.target.value)}
           required
@@ -364,17 +496,18 @@ function Step1({
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="CPF">
+        <Field label="CPF (somente números) *">
           <input
             className={inputCls}
             placeholder="000.000.000-00"
             value={form.cpf}
             onChange={(e) => setField("cpf", maskCpf(e.target.value))}
+            maxLength={14}
             required
           />
         </Field>
 
-        <Field label="Telefone / WhatsApp">
+        <Field label="WhatsApp com DDD *">
           <input
             className={inputCls}
             placeholder="(11) 99999-0000"
@@ -386,7 +519,7 @@ function Step1({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Senha">
+        <Field label="Senha *">
           <input
             type="password"
             className={inputCls}
@@ -397,7 +530,7 @@ function Step1({
           />
         </Field>
 
-        <Field label="Confirmar senha">
+        <Field label="Confirmar Senha *">
           <input
             type="password"
             className={inputCls}
@@ -414,21 +547,13 @@ function Step1({
       <button
         type="button"
         onClick={onNext}
-        className="mt-2 w-full rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-700"
+        className="w-full mt-2 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow transition text-sm"
       >
-        Continuar →
+        Continuar para Pagamento →
       </button>
     </div>
   );
 }
-
-// ─── Step 2: Pagamento ───────────────────────────────────────────────────────
-
-const BILLING_LABELS: Record<BillingType, string> = {
-  PIX: "PIX",
-  BOLETO: "Boleto bancário",
-  CREDIT_CARD: "Cartão de crédito",
-};
 
 function Step2({
   form,
@@ -446,64 +571,39 @@ function Step2({
   onBack: () => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
-        <h2
-          className="text-2xl font-semibold text-slate-900"
-          style={{ fontFamily: "var(--font-landing-serif)" }}
-        >
-          Forma de pagamento
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Escolha como prefere pagar a assinatura mensal.
-        </p>
+        <label className="block text-xs font-semibold text-slate-700 mb-2">Forma de Pagamento</label>
+        <div className="grid grid-cols-3 gap-2">
+          {(["PIX", "CREDIT_CARD", "BOLETO"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setField("billingType", type)}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition text-center ${
+                form.billingType === type
+                  ? "border-teal-600 bg-teal-50 text-teal-900 shadow-sm"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+              }`}
+            >
+              {type === "PIX" ? "PIX Imediato" : type === "CREDIT_CARD" ? "Cartão" : "Boleto"}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Seleção de método */}
-      <div className="grid grid-cols-3 gap-3">
-        {(["PIX", "BOLETO", "CREDIT_CARD"] as BillingType[]).map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => setField("billingType", type)}
-            className={`rounded-xl border px-3 py-2.5 text-center text-sm font-semibold transition ${
-              form.billingType === type
-                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-            }`}
-          >
-            {BILLING_LABELS[type]}
-          </button>
-        ))}
-      </div>
-
-      {/* Informativo por método */}
-      {form.billingType === "PIX" && (
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50/80 p-4 text-sm text-emerald-700">
-          Após confirmar, você receberá um QR Code PIX para pagar. Sua conta é ativada
-          automaticamente após a confirmação do pagamento.
-        </div>
-      )}
-      {form.billingType === "BOLETO" && (
-        <div className="rounded-xl border border-amber-100 bg-amber-50/80 p-4 text-sm text-amber-700">
-          O boleto vence em 1 dia útil. Sua conta será ativada após a compensação (pode levar até 3
-          dias úteis).
-        </div>
-      )}
-
-      {/* Formulário do cartão */}
       {form.billingType === "CREDIT_CARD" && (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/60 p-5">
-          <Field label="Nome no cartão">
+        <div className="space-y-3 pt-2 animate-in fade-in">
+          <Field label="Nome impresso no cartão *">
             <input
               className={inputCls}
-              placeholder="Como impresso no cartão"
+              placeholder="Ex: CRISTIANE ALCANTARA"
               value={form.card.holderName}
               onChange={(e) => setCardField("holderName", e.target.value.toUpperCase())}
             />
           </Field>
 
-          <Field label="Número do cartão">
+          <Field label="Número do cartão *">
             <input
               className={inputCls}
               placeholder="0000 0000 0000 0000"
@@ -542,34 +642,16 @@ function Step2({
               />
             </Field>
           </div>
-
-          <p className="text-xs text-slate-400">
-            Seus dados são transmitidos de forma segura (TLS) e processados pelo Asaas.
-            Não armazenamos dados do cartão.
-          </p>
         </div>
       )}
 
       {error && <ErrorBox message={error} />}
 
-      {/* Termos */}
-      <p className="text-xs text-slate-500">
-        Ao confirmar, você concorda com os{" "}
-        <Link href="/termos" className="underline hover:text-slate-700">
-          Termos de Uso
-        </Link>{" "}
-        e a{" "}
-        <Link href="/privacidade" className="underline hover:text-slate-700">
-          Política de Privacidade
-        </Link>{" "}
-        do Cliniva.
-      </p>
-
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-4">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          className="px-5 py-3 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
         >
           ← Voltar
         </button>
@@ -577,69 +659,99 @@ function Step2({
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-700 disabled:opacity-60"
+          className="flex-1 py-3 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-bold rounded-xl shadow text-sm transition"
         >
-          {isLoading ? "Processando…" : "Finalizar assinatura"}
+          {isLoading ? "Processando..." : "Confirmar Assinatura"}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Plan Summary ─────────────────────────────────────────────────────────────
-
-function PlanSummary() {
-  const features = [
-    "Insights estruturados por sessão",
-    "Resumo com evidências e perguntas sugeridas",
-    "Histórico completo por paciente",
-    "Hipóteses clínicas assistivas, sem diagnósticos",
-    "Organização de anotações e transcrições",
-    "Ambiente seguro com controle de acesso",
-    "Suporte assistido com IA",
-  ];
-
+function PlanSummary({ plan, isTrial }: { plan: any; isTrial: boolean }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-[24px] border border-emerald-100 bg-white/95 p-6 shadow-lg">
-        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
-          Plano Pro
-        </p>
-        <p className="mt-3 text-3xl font-semibold text-slate-900">
-          {formatPrice(29990)}{" "}
-          <span className="text-base font-medium text-slate-400">/ mês</span>
-        </p>
-        <p className="mt-1 text-sm text-slate-500">Cobrado mensalmente. Cancele quando quiser.</p>
+      <div className="rounded-[24px] border border-teal-100 bg-white/95 p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-widest text-teal-600">
+            {isTrial ? "Degustação Experimental" : "Assinatura Mensal"}
+          </p>
+          {isTrial && (
+            <span className="text-[10px] font-extrabold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full">
+              7 DIAS GRÁTIS
+            </span>
+          )}
+        </div>
+
+        <h3 className="text-2xl font-bold text-slate-900 mt-2">{plan.name}</h3>
+
+        <div className="mt-3">
+          {isTrial ? (
+            <div>
+              <span className="text-3xl font-extrabold text-slate-900">R$ 0,00</span>
+              <p className="text-xs text-slate-500 mt-1">
+                Acesso gratuito por 7 dias. Ao final, escolha se deseja assinar.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <span className="text-3xl font-extrabold text-slate-900">{plan.priceFormatted}</span>
+              <span className="text-xs font-medium text-slate-500"> / mês</span>
+              <p className="text-xs text-slate-500 mt-1">Cobrado mensalmente via Asaas. Cancele quando quiser.</p>
+            </div>
+          )}
+        </div>
 
         <hr className="my-4 border-slate-100" />
 
-        <ul className="space-y-2.5">
-          {features.map((f) => (
-            <li key={f} className="flex items-start gap-2.5 text-sm text-slate-600">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-              {f}
+        <ul className="space-y-2.5 text-xs text-slate-600">
+          <li className="flex items-start gap-2">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>Prontuário clínico estruturado e anamnese</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>Análises com IA Corporativa Cliniva</span>
+          </li>
+          {plan.features.realtime_audio_stt && (
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 font-bold">✓</span>
+              <span>Transcrição contínua e Copiloto ao vivo</span>
             </li>
-          ))}
+          )}
+          {plan.features.public_landing_page && (
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 font-bold">✓</span>
+              <span>Página pública personalizada e chat IA</span>
+            </li>
+          )}
+          {plan.features.public_slot_booking && (
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 font-bold">✓</span>
+              <span>Agendamento automático direto na agenda</span>
+            </li>
+          )}
+          <li className="flex items-start gap-2">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>Exportação irrestrita de dados e prontuários (LGPD)</span>
+          </li>
         </ul>
       </div>
 
-      <div className="rounded-[20px] border border-amber-100 bg-amber-50/80 p-4">
-        <p className="text-xs font-semibold text-amber-800">Aviso clínico</p>
-        <p className="mt-1.5 text-xs text-amber-700">
-          O Cliniva é uma ferramenta de apoio. Não substitui o julgamento clínico profissional e não
-          realiza diagnósticos.
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/80 p-4 text-xs text-amber-800">
+        <p className="font-bold mb-1">Privacidade & Responsabilidade</p>
+        <p className="leading-relaxed">
+          O Cliniva Copilot não realiza diagnósticos médicos nem prescreve medicamentos. Seus dados e prontuários estão sob sigilo ético profissional.
         </p>
       </div>
     </div>
   );
 }
 
-// ─── UI Atoms ─────────────────────────────────────────────────────────────────
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-700">{label}</label>
       {children}
     </div>
   );
@@ -647,11 +759,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
       {message}
     </div>
   );
 }
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100";
+  "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500";

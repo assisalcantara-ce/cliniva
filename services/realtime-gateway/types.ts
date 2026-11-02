@@ -51,4 +51,5 @@ export interface RealtimeGatewayConfig {
   maxPayloadBytes?: number;
   maxQueueSize?: number;
   allowedOrigins?: string[];
+  authorizeEntitlement?: (therapistId: string) => Promise<{ allowed: boolean; reason?: string }>;
 }

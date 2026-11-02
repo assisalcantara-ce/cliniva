@@ -89,6 +89,7 @@ export interface CreatePaymentInput {
 
 export interface AsaasPayment {
   id: string;
+  customer?: string;
   status: string; // PENDING, CONFIRMED, RECEIVED, OVERDUE, etc.
   billingType: BillingType;
   value: number;
@@ -130,6 +131,7 @@ export interface CreateSubscriptionInput {
 
 export interface AsaasSubscription {
   id: string;
+  customer?: string;
   status: string;
   billingType: BillingType;
   value: number;

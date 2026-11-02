@@ -6,6 +6,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 
+type PublicProfileData = {
+  public_slug: string;
+  display_name: string;
+  crp: string;
+  bio: string;
+  photo_url: string;
+  phone: string;
+  email: string;
+  city: string;
+  state: string;
+  public_booking_enabled: boolean;
+};
+
+type SubscriptionData = {
+  planId: string | null;
+  planName: string;
+  status: string;
+  priceFormatted: string;
+  isTrial: boolean;
+  trialEndsAt: string | null;
+  trialDaysRemaining: number;
+  nextBillingDate: string | null;
+  features: {
+    canUseLiveCopilot: boolean;
+    canUsePublicPage: boolean;
+    requiresOwnKeyForTranscription: boolean;
+    hasCorporateAiAccess: boolean;
+  };
+};
+
+type QuotaData = {
+  currentUsage: number;
+  maxAllowed: number;
+  period: string;
+};
+
+type InvoiceData = {
+  id: string;
+  amount_cents: number;
+  status: string;
+  due_date?: string;
+  paid_at?: string;
+  created_at: string;
+};
+
 type SettingsData = {
   // Organization
   organization_name: string;
@@ -91,12 +136,48 @@ export default function SettingsPage() {
   });
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [publicProfile, setPublicProfile] = useState<PublicProfileData>({
+    public_slug: "",
+    display_name: "",
+    crp: "",
+    bio: "",
+    photo_url: "",
+    phone: "",
+    email: "",
+    city: "",
+    state: "",
+    public_booking_enabled: true,
+  });
+  const [hasPublicPageAccess, setHasPublicPageAccess] = useState<boolean>(false);
+  const [savingPublicProfile, setSavingPublicProfile] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [quota, setQuota] = useState<QuotaData | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadSettings();
+    loadSubscription();
   }, []);
+
+  async function loadSubscription() {
+    try {
+      setLoadingSubscription(true);
+      const res = await fetch("/api/subscription");
+      if (res.ok) {
+        const data = await res.json();
+        setSubscription(data.subscription || null);
+        setQuota(data.quota || null);
+        setInvoices(data.invoices || []);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar dados de assinatura:", err);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  }
 
   async function loadSettings() {
     try {
@@ -113,6 +194,30 @@ export default function SettingsPage() {
           key_added_at: typeof data.ai?.key_added_at === "string" ? data.ai.key_added_at : undefined,
         });
         setOpenaiApiKey("");
+
+        try {
+          const pubRes = await fetch("/api/settings/public-profile");
+          if (pubRes.ok) {
+            const pubData = await pubRes.json();
+            if (pubData.profile) {
+              setPublicProfile({
+                public_slug: pubData.profile.public_slug || "",
+                display_name: pubData.profile.display_name || "",
+                crp: pubData.profile.crp || "",
+                bio: pubData.profile.bio || "",
+                photo_url: pubData.profile.photo_url || "",
+                phone: pubData.profile.phone || "",
+                email: pubData.profile.email || "",
+                city: pubData.profile.city || "",
+                state: pubData.profile.state || "",
+                public_booking_enabled: pubData.profile.public_booking_enabled ?? true,
+              });
+            }
+            setHasPublicPageAccess(Boolean(pubData.entitlement?.hasPublicPageAccess));
+          }
+        } catch {
+          // Falha silenciosa no carregamento de perfil público
+        }
       }
     } catch (err) {
       console.error("Erro ao carregar configurações:", err);
@@ -781,24 +886,376 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {/* Aba Página Pública Profissional */}
+        {currentTab === "pagina_publica" && (
+          <div className="grid grid-cols-1 gap-6">
+            {!hasPublicPageAccess ? (
+              <Card className="border border-amber-200 bg-amber-50/60 p-6 rounded-2xl">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg shrink-0">
+                    ★
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base mb-1">
+                      Recurso Exclusivo do Plano Profissional
+                    </h3>
+                    <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                      A página pública individual com agendamento automático e chat inteligente com IA Corporativa Cliniva é exclusiva do plano <strong>Profissional (R$ 199,90/mês)</strong> ou durante o teste gratuito de 7 dias.
+                    </p>
+                    <a
+                      href="/planos"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                    >
+                      Conhecer Plano Profissional
+                    </a>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              <>
+                <Card className="admin-card">
+                  <CardHeader className="admin-card__header">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="admin-card__title">Endereço da Página Pública (/p/[slug])</CardTitle>
+                      {publicProfile.public_slug && (
+                        <a
+                          href={`/p/${publicProfile.public_slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-semibold text-teal-600 hover:text-teal-700 underline flex items-center gap-1"
+                        >
+                          Visualizar Página ↗
+                        </a>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="admin-card__content space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Seu Link Exclusivo *
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-mono bg-gray-100 px-3 py-2.5 rounded-lg border border-gray-200">
+                          https://cliniva.com.br/p/
+                        </span>
+                        <Input
+                          type="text"
+                          value={publicProfile.public_slug}
+                          onChange={(e) =>
+                            setPublicProfile((prev: PublicProfileData) => ({
+                              ...prev,
+                              public_slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+                            }))
+                          }
+                          placeholder="seu-nome-profissional"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Use apenas letras minúsculas, números e hífens. Ex: <code>dra-cristiane</code>
+                      </p>
+                    </div>
+
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={publicProfile.public_booking_enabled}
+                          onChange={(e) =>
+                            setPublicProfile((prev: PublicProfileData) => ({
+                              ...prev,
+                              public_booking_enabled: e.target.checked,
+                            }))
+                          }
+                          className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                        />
+                        <span>Habilitar agendamento online diretamente na agenda Cliniva</span>
+                      </label>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="admin-card">
+                  <CardHeader className="admin-card__header">
+                    <CardTitle className="admin-card__title">Informações de Exibição Pública</CardTitle>
+                  </CardHeader>
+                  <CardContent className="admin-card__content space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          Nome de Exibição na Página *
+                        </label>
+                        <Input
+                          type="text"
+                          value={publicProfile.display_name}
+                          onChange={(e) =>
+                            setPublicProfile((prev: PublicProfileData) => ({ ...prev, display_name: e.target.value }))
+                          }
+                          placeholder="Ex: Dra. Cristiane Alcântara"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          Registro Profissional (CRP / CRM)
+                        </label>
+                        <Input
+                          type="text"
+                          value={publicProfile.crp}
+                          onChange={(e) =>
+                            setPublicProfile((prev: PublicProfileData) => ({ ...prev, crp: e.target.value }))
+                          }
+                          placeholder="Ex: 06/123456"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Foto de Perfil (URL da Imagem)
+                      </label>
+                      <Input
+                        type="text"
+                        value={publicProfile.photo_url}
+                        onChange={(e) =>
+                          setPublicProfile((prev: PublicProfileData) => ({ ...prev, photo_url: e.target.value }))
+                        }
+                        placeholder="https://exemplo.com/sua-foto.jpg"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Você também pode usar a foto carregada na aba "Dados do Profissional".
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Apresentação e Biografia Profissional
+                      </label>
+                      <textarea
+                        rows={5}
+                        value={publicProfile.bio}
+                        onChange={(e) =>
+                          setPublicProfile((prev: PublicProfileData) => ({ ...prev, bio: e.target.value }))
+                        }
+                        placeholder="Descreva sua formação, abordagem clínica, público atendido e diferencial de acolhimento..."
+                        className="w-full px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <Button
+                        type="button"
+                        disabled={savingPublicProfile}
+                        onClick={async () => {
+                          setSavingPublicProfile(true);
+                          try {
+                            const res = await fetch("/api/settings/public-profile", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(publicProfile),
+                            });
+                            const result = await res.json();
+                            if (!res.ok) {
+                              throw new Error(result.error || "Falha ao salvar página pública.");
+                            }
+                            setModal({
+                              isOpen: true,
+                              type: "success",
+                              title: "Sucesso!",
+                              message: "Dados da página pública salvos com sucesso.",
+                            });
+                          } catch (err) {
+                            setModal({
+                              isOpen: true,
+                              type: "error",
+                              title: "Erro ao Salvar",
+                              message: err instanceof Error ? err.message : "Erro desconhecido.",
+                            });
+                          } finally {
+                            setSavingPublicProfile(false);
+                          }
+                        }}
+                        className="bg-teal-600 hover:bg-teal-700 text-white font-semibold"
+                      >
+                        {savingPublicProfile ? "Salvando Página Pública..." : "Salvar Dados da Página Pública"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Aba Meu plano */}
         {currentTab === "plano" && (
           <div className="grid grid-cols-1 gap-6">
-            <Card className="admin-card">
-              <CardHeader className="admin-card__header">
-                <CardTitle className="admin-card__title">Faturas do Plano</CardTitle>
-              </CardHeader>
-              <CardContent className="admin-card__content">
-                <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-                  Em breve: listagem de faturas pagas e em aberto do tenant.
-                </div>
-              </CardContent>
-            </Card>
+            {loadingSubscription ? (
+              <div className="p-12 text-center text-sm text-slate-500">
+                Carregando dados da assinatura...
+              </div>
+            ) : (
+              <>
+                {/* Resumo do Plano Atual */}
+                <Card className="border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                  <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-teal-800 text-white p-6 md:p-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs uppercase tracking-wider font-semibold text-teal-300">
+                            Plano Atual
+                          </span>
+                          {subscription?.isTrial ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-slate-950">
+                              Trial 7 Dias ({subscription.trialDaysRemaining}d restantes)
+                            </span>
+                          ) : subscription?.status === "active" ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-slate-950">
+                              Ativo
+                            </span>
+                          ) : subscription?.status === "trial_expired" ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white">
+                              Trial Expirado
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-600 text-white">
+                              {subscription?.status || "Pendente"}
+                            </span>
+                          )}
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-extrabold text-white">
+                          Cliniva {subscription?.planName || "Essencial"}
+                        </h2>
+                        <p className="text-slate-300 text-sm mt-1">
+                          {subscription?.isTrial
+                            ? `Teste gratuito válido até ${subscription.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString("pt-BR") : "7 dias"}.`
+                            : `${subscription?.priceFormatted || "R$ 59,90/mês"}`}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <a
+                          href="/planos"
+                          className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm shadow-md transition"
+                        >
+                          {subscription?.status === "trial_expired" || subscription?.status === "inactive"
+                            ? "Assinar Agora"
+                            : "Mudar de Plano"}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-6 space-y-6">
+                    {/* Quota de IA Corporativa */}
+                    {quota && (
+                      <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="font-semibold text-slate-800">
+                            Franquia de IA Corporativa ({subscription?.isTrial ? "Trial de 7 dias" : "Mês Vigente"})
+                          </span>
+                          <span className="font-bold text-slate-900">
+                            {quota.currentUsage} / {quota.maxAllowed} análises
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-2.5 rounded-full transition-all ${
+                              quota.currentUsage >= quota.maxAllowed
+                                ? "bg-red-500"
+                                : quota.currentUsage / quota.maxAllowed > 0.8
+                                ? "bg-amber-500"
+                                : "bg-teal-600"
+                            }`}
+                            style={{
+                              width: `${Math.min(100, Math.round((quota.currentUsage / Math.max(1, quota.maxAllowed)) * 100))}%`,
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">
+                          {subscription?.isTrial
+                            ? "O teste gratuito inclui 5 análises clínicas com IA Corporativa Cliniva durante todo o período."
+                            : "As análises de notas com IA Corporativa Cliniva são renovadas mensalmente a cada ciclo de cobrança."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Resumo de Recursos Disponíveis */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                        <span className="text-slate-500 block mb-1">Notas Clínicas</span>
+                        <span className="font-bold text-slate-800">Ilimitadas</span>
+                      </div>
+                      <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                        <span className="text-slate-500 block mb-1">Copiloto e Áudio</span>
+                        <span className="font-bold text-slate-800">
+                          {subscription?.features.canUseLiveCopilot ? "Liberado (BYOK)" : "Não disponível"}
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                        <span className="text-slate-500 block mb-1">Página Pública</span>
+                        <span className="font-bold text-slate-800">
+                          {subscription?.features.canUsePublicPage ? "Ativa com Agendamento" : "Exclusivo Profissional"}
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                        <span className="text-slate-500 block mb-1">Prontuários & Leitura</span>
+                        <span className="font-bold text-emerald-600">Sempre Preservados</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Histórico de Faturas */}
+                <Card className="admin-card">
+                  <CardHeader className="admin-card__header">
+                    <CardTitle className="admin-card__title">Histórico de Faturas</CardTitle>
+                  </CardHeader>
+                  <CardContent className="admin-card__content">
+                    {invoices.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                        Nenhuma fatura registrada no momento.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-200">
+                        {invoices.map((inv) => (
+                          <div key={inv.id} className="py-3 flex items-center justify-between text-sm">
+                            <div>
+                              <div className="font-semibold text-slate-900">
+                                R$ {(inv.amount_cents / 100).toFixed(2).replace(".", ",")}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {new Date(inv.created_at).toLocaleDateString("pt-BR")}
+                              </div>
+                            </div>
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                inv.status === "paid" || inv.status === "received"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : inv.status === "pending"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {inv.status === "paid" || inv.status === "received"
+                                ? "Paga"
+                                : inv.status === "pending"
+                                ? "Pendente"
+                                : inv.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         )}
 
         {/* Botões de Ação */}
-        {currentTab !== "plano" && (
+        {currentTab !== "plano" && currentTab !== "pagina_publica" && (
           <div className="flex justify-end gap-3">
             <Button variant="secondary" type="button">
               Cancelar

@@ -37,7 +37,7 @@ interface SessionContext {
  */
 export class RealtimeGatewayServer {
   private wss: WebSocketServer | null = null;
-  private readonly config: Required<RealtimeGatewayConfig>;
+  private readonly config: RealtimeGatewayConfig & Required<Omit<RealtimeGatewayConfig, "authorizeEntitlement">> & { authorizeEntitlement?: (therapistId: string) => Promise<{ allowed: boolean; reason?: string }> };
   private readonly authenticator: RealtimeAuthenticator;
   private readonly sessions = new Map<WebSocket, SessionContext>();
   private readonly therapistConnections = new Map<string, Set<WebSocket>>();
@@ -54,6 +54,7 @@ export class RealtimeGatewayServer {
       maxPayloadBytes: config?.maxPayloadBytes ?? MAX_AUDIO_CHUNK_BYTES * 2,
       maxQueueSize: config?.maxQueueSize ?? 50,
       allowedOrigins: config?.allowedOrigins ?? [],
+      authorizeEntitlement: config?.authorizeEntitlement,
     };
     this.authenticator = this.config.authenticator;
   }
@@ -124,6 +125,20 @@ export class RealtimeGatewayServer {
     if (!user) {
       this.rejectAndClose(ws, 4403, "Acesso negado: token inválido ou expirado.");
       return;
+    }
+
+    // 1.1 Validação de Direitos do Plano (Entitlement check para realtime_audio_stt)
+    if (this.config.authorizeEntitlement) {
+      try {
+        const authResult = await this.config.authorizeEntitlement(user.userId);
+        if (!authResult.allowed) {
+          this.rejectAndClose(ws, 4403, authResult.reason ?? "Acesso negado: transcrição de áudio em tempo real requer plano Premium ou Profissional.");
+          return;
+        }
+      } catch (err: unknown) {
+        this.rejectAndClose(ws, 4500, "Erro ao verificar direitos da assinatura.");
+        return;
+      }
     }
 
     // 2. Limite de Conexões por Terapeuta

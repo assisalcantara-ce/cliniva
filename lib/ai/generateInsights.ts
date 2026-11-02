@@ -6,6 +6,8 @@ import { moderateText, type ModerationResult } from "@/lib/ai/moderation";
 import { openaiPostJson } from "@/lib/ai/openai";
 import { groqChatJson, getGroqApiKey, type GroqChatMessage } from "@/lib/ai/groq";
 import { getTherapistOpenAiKey } from "@/lib/db/therapist";
+import { resolveOpenAiKeyForSession, type ResolvedAiKey } from "@/lib/ai/aiKeyResolver";
+import { getTherapistEntitlements } from "@/lib/plans/entitlements";
 import {
   buildUserPrompt,
   COPILOT_DEVELOPER_PROMPT,
@@ -447,22 +449,44 @@ export async function generateInsightsFromTranscript(params: {
   therapistId: string;
   patientMemory?: string;
 }): Promise<GenerateInsightsResult> {
-  const { apiKey: therapistApiKey } = await getTherapistOpenAiKey({ therapistId: params.therapistId });
-  const groqKey = getGroqApiKey();
   const envProvider = getAiProvider();
 
-  // Prioridade: openai (chave do tenant) > groq (fallback gratuito) > mock
-  const provider =
-    envProvider === "mock"
-      ? "mock"
-      : therapistApiKey
-      ? "openai"
-      : groqKey
-      ? "groq"
-      : "mock";
+  if (envProvider === "mock") {
+    const transcript = chunksToTranscript(params.chunks);
+    let inputModeration: ModerationResult;
+    try {
+      inputModeration = await moderateText({
+        input: transcript,
+        provider: "mock",
+      });
+    } catch {
+      inputModeration = { flagged: false, categories: {}, categoryScores: {} };
+    }
+    const { package: pkg, inputModerationFlagged } = buildMockInsights(params.chunks, undefined);
+    return { package: pkg, inputModerationFlagged, provider: "mock", isFullAI: false };
+  }
 
-  const fallbackReason: FallbackReason | undefined =
-    envProvider === "mock" || therapistApiKey ? undefined : "missing_key";
+  // 1. Resolução Segura de Chave e Entitlement (Plano Essencial -> Corporativa; Premium/Profissional -> BYOK)
+  const entitlement = await getTherapistEntitlements(params.therapistId);
+  let resolvedKey: ResolvedAiKey | null = null;
+  let therapistApiKey: string | undefined = undefined;
+
+  try {
+    resolvedKey = await resolveOpenAiKeyForSession({ therapistId: params.therapistId, entitlement, purpose: "basic_notes_analysis" });
+    therapistApiKey = resolvedKey.apiKey;
+  } catch (keyErr) {
+    const groqKey = getGroqApiKey();
+    if (!groqKey) {
+      throw keyErr;
+    }
+  }
+
+  const groqKey = getGroqApiKey();
+  const provider = therapistApiKey ? "openai" : groqKey ? "groq" : "mock";
+  const fallbackReason: FallbackReason | undefined = therapistApiKey ? undefined : "missing_key";
+
+  // Para análises básicas de notas, utiliza o modelo econômico corporativo (CHEAP_MODEL = gpt-4.1-mini)
+  const effectiveMainModel = CHEAP_MODEL;
 
   const transcript = chunksToTranscript(params.chunks);
   let inputModeration: ModerationResult;
@@ -622,7 +646,7 @@ export async function generateInsightsFromTranscript(params: {
       const response = await openaiPostJson<ResponsesApiResponse>({
         path: "/responses",
         body: {
-          model: MAIN_MODEL,
+          model: effectiveMainModel,
           input: [
             { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
             { role: "developer", content: [{ type: "input_text", text: COPILOT_DEVELOPER_PROMPT }] },

@@ -7,6 +7,7 @@ import { applyCors, handleOptionsCors } from "@/lib/cors";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { publicChatMessageSchema } from "@/lib/schemas/chat";
 import { getOpenAIKeyForTherapist } from "@/lib/ai/chatClient";
+import { getTherapistEntitlements } from "@/lib/plans/entitlements";
 import { generateSessionToken } from "@/lib/ai/chatToken";
 import { openaiPostJson } from "@/lib/ai/openai";
 import { CHAT_TOOLS } from "@/lib/ai/chatTools";
@@ -83,6 +84,19 @@ export async function POST(req: NextRequest) {
       const response = NextResponse.json(
         { error: "Terapeuta não encontrado ou indisponível para agendamento online." },
         { status: 404 }
+      );
+      return applyCors(response, req);
+    }
+
+    // 3.1 Verificação de Direitos do Plano (Chat público requer plano Profissional ou Trial)
+    const entitlement = await getTherapistEntitlements(therapist.id);
+    if (!entitlement.canUseFeature("public_chat_agent")) {
+      const response = NextResponse.json(
+        {
+          error: "O chat inteligente está temporariamente indisponível para este profissional. Por favor, utilize o agendamento direto na página.",
+          code: "FEATURE_NOT_PERMITTED",
+        },
+        { status: 403 }
       );
       return applyCors(response, req);
     }

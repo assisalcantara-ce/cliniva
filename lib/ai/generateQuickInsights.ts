@@ -4,6 +4,8 @@ import { z } from "zod";
 import { openaiPostJson } from "@/lib/ai/openai";
 import { groqChatJson, getGroqApiKey, type GroqChatMessage } from "@/lib/ai/groq";
 import { getTherapistOpenAiKey } from "@/lib/db/therapist";
+import { resolveOpenAiKeyForSession } from "@/lib/ai/aiKeyResolver";
+import { getTherapistEntitlements } from "@/lib/plans/entitlements";
 import { getAiProvider } from "@/lib/ai/mock";
 
 const CHEAP_MODEL = process.env.OPENAI_CHEAP_MODEL ?? "gpt-4.1-mini";
@@ -150,9 +152,18 @@ export async function generateQuickInsights(params: {
     return buildMockQuick(params.chunks);
   }
 
-  const { apiKey: therapistApiKey } = await getTherapistOpenAiKey({
-    therapistId: params.therapistId,
-  });
+  let therapistApiKey: string | undefined = undefined;
+  try {
+    const entitlement = await getTherapistEntitlements(params.therapistId);
+    const resolved = await resolveOpenAiKeyForSession({ therapistId: params.therapistId, entitlement });
+    therapistApiKey = resolved.apiKey;
+  } catch (keyErr) {
+    // Se falhar e houver groq fallback, continua
+    const groqKey = getGroqApiKey();
+    if (!groqKey) {
+      throw keyErr;
+    }
+  }
   const groqKey = getGroqApiKey();
 
   const prompt = buildQuickPrompt(params.chunks, params.patientMemory);

@@ -5,6 +5,7 @@ import { generateQuickInsights } from "@/lib/ai/generateQuickInsights";
 import { getTherapistIdFromRequest } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPatientMemory } from "@/lib/db/patientMemory";
+import { getTherapistEntitlements } from "@/lib/plans/entitlements";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,27 @@ export async function POST(
   const sessionId = z.string().min(1).parse(id);
 
   try {
+    // 1. Verificação Estrita de Direitos do Plano (Entitlements)
+    const entitlement = await getTherapistEntitlements(therapistId);
+    if (entitlement.status === "trial_expired") {
+      return NextResponse.json(
+        {
+          error: "Seu período de teste gratuito de 7 dias expirou. Faça upgrade de plano para gerar novas análises de IA.",
+          code: "TRIAL_EXPIRED",
+        },
+        { status: 403 }
+      );
+    }
+    if (entitlement.status === "cancelled" || entitlement.status === "inactive") {
+      return NextResponse.json(
+        {
+          error: "Sua assinatura não está ativa. Ative seu plano para utilizar os recursos de inteligência artificial.",
+          code: "SUBSCRIPTION_INACTIVE",
+        },
+        { status: 403 }
+      );
+    }
+
     const supabase = createSupabaseAdminClient();
 
     // 1. Verifica se a sessão existe e pertence ao terapeuta autenticado
