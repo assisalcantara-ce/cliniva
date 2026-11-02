@@ -26,7 +26,7 @@ export const CHAT_TOOLS = [
     function: {
       name: "propor_agendamento",
       description:
-        "Cria uma proposta formal de agendamento na tela do usuário para um horário disponível previamente confirmado. A IA NÃO confirma o agendamento; esta função apenas exibe o card de resumo para o usuário clicar em Confirmar.",
+        "Cria uma proposta formal de agendamento na tela do usuário para um horário disponível previamente confirmado. A IA NUNCA deve presumir a data se o paciente informar apenas a hora; tanto a data quanto a hora devem ser conhecidas e válidas. A IA NÃO confirma o agendamento no banco; esta função apenas exibe o card de resumo para o usuário clicar em Confirmar.",
       parameters: {
         type: "object",
         properties: {

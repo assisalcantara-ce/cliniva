@@ -39,9 +39,11 @@ export const publicChatConfirmAppointmentSchema = z.object({
   whatsapp: z
     .string()
     .trim()
-    .min(10, "WhatsApp deve ter pelo menos 10 dígitos com DDD.")
-    .max(20, "WhatsApp excede o formato suportado.")
-    .regex(/^\+?[0-9\s()-]+$/, "Formato de telefone inválido."),
+    .transform((val) => val.replace(/\D/g, ""))
+    .refine(
+      (digits) => digits.length === 10 || digits.length === 11,
+      { message: "WhatsApp deve conter DDD + 8 ou 9 dígitos (10 ou 11 números no total)." }
+    ),
   notes: z.string().trim().max(500, "Observações não podem exceder 500 caracteres.").optional(),
   idempotencyKey: z
     .string()

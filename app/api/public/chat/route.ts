@@ -213,7 +213,14 @@ export async function POST(req: NextRequest) {
     }).format(new Date());
 
     const systemPrompt = buildUniversalChatSystemPrompt(
-      { displayName: therapist.displayName, slug: therapist.slug },
+      {
+        displayName: therapist.displayName,
+        slug: therapist.slug,
+        bio: therapist.bio,
+        specialties: therapist.specialties,
+        services: therapist.services,
+        modalities: therapist.modalities,
+      },
       nowBrasilia
     );
 
@@ -243,6 +250,7 @@ export async function POST(req: NextRequest) {
     let choice = completion.choices[0];
     let assistantMsg = choice.message;
     let proposedData: any = null;
+    let interactiveSlots: any[] | null = null;
 
     // 10. Processamento de Tool Calls (se houver)
     if (assistantMsg.tool_calls && assistantMsg.tool_calls.length > 0) {
@@ -262,6 +270,9 @@ export async function POST(req: NextRequest) {
                 startDate,
                 endDate,
               });
+              if (Array.isArray(slots) && slots.length > 0) {
+                interactiveSlots = slots.slice(0, 8); // Disponibiliza até 8 slots reais para cards interativos
+              }
               toolResultStr = JSON.stringify({
                 status: "success",
                 slots_disponiveis: slots,
@@ -289,42 +300,59 @@ export async function POST(req: NextRequest) {
               // Normaliza o telefone do paciente (mantém apenas dígitos)
               const cleanWhatsapp = String(fnArgs.whatsapp || "").replace(/\D/g, "");
 
-              // Insere na tabela landing_chat_proposals (sem referenciar colunas inexistentes como patient_notes)
-              const { data: proposal, error: propErr } = await supabase
-                .from("landing_chat_proposals")
-                .insert({
-                  session_id: session.id,
-                  therapist_id: therapist.id,
-                  scheduled_start: scheduledStartIso,
-                  scheduled_end: scheduledEndIso,
-                  patient_name: String(fnArgs.nome_paciente || "").trim(),
-                  patient_whatsapp: cleanWhatsapp,
-                  status: "proposed",
-                })
-                .select("id, expires_at")
-                .single();
-
-              if (propErr || !proposal) {
-                console.error("[POST /api/public/chat] Erro ao gravar landing_chat_proposals:", propErr);
-                throw new Error("Erro ao gravar proposta temporária no servidor.");
-              }
-
-              proposedData = {
-                proposalId: proposal.id,
-                fullName: String(fnArgs.nome_paciente || "").trim(),
-                whatsapp: cleanWhatsapp,
-                scheduledStart: scheduledStartIso,
-                scheduledEnd: scheduledEndIso,
-                notes: fnArgs.observacoes || undefined,
-                expiresAt: proposal.expires_at,
-              };
-
-              toolResultStr = JSON.stringify({
-                status: "proposed",
-                proposal_id: proposal.id,
-                message:
-                  "Proposta gerada com sucesso na tela do usuário. Oriente o paciente a revisar os dados, aceitar os termos de consentimento e clicar em 'Confirmar Agendamento'.",
+              // Revalidação em tempo real: verifica se o slot solicitado realmente está disponível
+              const requestedDate = scheduledStartIso.slice(0, 10);
+              const liveSlots = await fetchTherapistAvailableSlots(therapist.id, {
+                startDate: requestedDate,
+                endDate: requestedDate,
               });
+              const isSlotStillAvailable = liveSlots.some(
+                (s: any) => new Date(s.start).getTime() === new Date(scheduledStartIso).getTime()
+              );
+
+              if (!isSlotStillAvailable) {
+                toolResultStr = JSON.stringify({
+                  status: "unavailable",
+                  message: "Este horário específico não está mais disponível na agenda. Por favor, ofereça outros horários vagos ao paciente.",
+                });
+              } else {
+                // Insere na tabela landing_chat_proposals
+                const { data: proposal, error: propErr } = await supabase
+                  .from("landing_chat_proposals")
+                  .insert({
+                    session_id: session.id,
+                    therapist_id: therapist.id,
+                    scheduled_start: scheduledStartIso,
+                    scheduled_end: scheduledEndIso,
+                    patient_name: String(fnArgs.nome_paciente || "").trim(),
+                    patient_whatsapp: cleanWhatsapp,
+                    status: "proposed",
+                  })
+                  .select("id, expires_at")
+                  .single();
+
+                if (propErr || !proposal) {
+                  console.error("[POST /api/public/chat] Erro ao gravar landing_chat_proposals:", propErr);
+                  throw new Error("Erro ao gravar proposta temporária no servidor.");
+                }
+
+                proposedData = {
+                  proposalId: proposal.id,
+                  fullName: String(fnArgs.nome_paciente || "").trim(),
+                  whatsapp: cleanWhatsapp,
+                  scheduledStart: scheduledStartIso,
+                  scheduledEnd: scheduledEndIso,
+                  notes: fnArgs.observacoes || undefined,
+                  expiresAt: proposal.expires_at,
+                };
+
+                toolResultStr = JSON.stringify({
+                  status: "proposed",
+                  proposal_id: proposal.id,
+                  message:
+                    "Proposta gerada com sucesso na tela do usuário. Oriente o paciente a revisar os dados, aceitar os termos de consentimento e clicar em 'Confirmar Solicitação'.",
+                });
+              }
             } catch (err: any) {
               console.error("[POST /api/public/chat] Erro na função propor_agendamento:", err);
               toolResultStr = JSON.stringify({
@@ -388,6 +416,7 @@ export async function POST(req: NextRequest) {
       content: finalAssistantText,
       timestamp: new Date().toISOString(),
       ...(proposedData ? { proposal: proposedData } : {}),
+      ...(interactiveSlots ? { slots: interactiveSlots } : {}),
     });
 
     await supabase
@@ -406,6 +435,7 @@ export async function POST(req: NextRequest) {
         sessionToken: generateSessionToken(session.id),
         message: finalAssistantText,
         proposal: proposedData,
+        slots: interactiveSlots,
         remainingMessages: Math.max(0, session.max_messages - (session.message_count + 1)),
       },
       { status: 200 }
