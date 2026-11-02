@@ -70,10 +70,15 @@ export function AppShell({
         const json = (await res.json()) as { ai?: { has_key?: boolean; has_groq?: boolean } };
         const hasKey = Boolean(json.ai?.has_key);
         const groqAvailable = Boolean(json.ai?.has_groq);
-        if (aiProvider !== "mock" && hasKey) {
+
+        // Prioridade: chave individual configurada do profissional > groq > offline
+        if (hasKey) {
           setAiMode("openai");
         } else if (groqAvailable) {
           setAiMode("groq");
+        } else if (aiProvider === "mock") {
+          // Modo mock exclusivo para desenvolvimento/testes quando configurado
+          setAiMode("offline");
         } else {
           setAiMode("offline");
         }

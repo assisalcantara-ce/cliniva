@@ -156,6 +156,11 @@ export function generateMockInsightsFromTranscript(params: {
 export const AI_PROVIDER_SCHEMA = z.enum(["openai", "mock"]);
 
 export function getAiProvider(): "openai" | "mock" {
+  // O modo mock é estritamente restrito a desenvolvimento/testes locais.
+  // Em produção (Vercel), nunca é permitido simular respostas silenciosamente.
+  if (process.env.NODE_ENV === "production") {
+    return "openai";
+  }
   const raw = process.env.AI_PROVIDER;
   const parsed = AI_PROVIDER_SCHEMA.safeParse(raw);
   return parsed.success ? parsed.data : "openai";

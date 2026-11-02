@@ -7,14 +7,17 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 function getAiProvider(): "openai" | "mock" {
-  return process.env.AI_PROVIDER === "mock" ? "mock" : "openai";
+  // O modo mock é estritamente limitado ao desenvolvimento/testes locais.
+  // Em produção, nunca deve mascarar o provedor nem suprimir a chave do profissional.
+  if (process.env.NODE_ENV !== "production" && process.env.AI_PROVIDER === "mock") {
+    return "mock";
+  }
+  return "openai";
 }
 
 async function getInitialAiMode(
   aiProvider: "openai" | "mock"
 ): Promise<"openai" | "groq" | "offline" | "verificando"> {
-  if (aiProvider === "mock") return "offline";
-
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
@@ -41,6 +44,7 @@ async function getInitialAiMode(
     );
     const hasGroq = Boolean(process.env.GROQ_API_KEY);
 
+    // Prioridade máxima: chave individual configurada do profissional autenticado
     if (hasTherapistKey) {
       return "openai";
     }
