@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
     if (effectiveStatus === "active") {
       const { data: prop } = await supabase
         .from("landing_chat_proposals")
-        .select("id, scheduled_start, scheduled_end, patient_name, patient_whatsapp, patient_notes, expires_at, status")
+        .select("id, scheduled_start, scheduled_end, patient_name, patient_whatsapp, expires_at, status")
         .eq("session_id", sessionId)
         .eq("therapist_id", therapist.id)
         .eq("status", "proposed")
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
           whatsapp: prop.patient_whatsapp,
           scheduledStart: prop.scheduled_start,
           scheduledEnd: prop.scheduled_end,
-          notes: prop.patient_notes,
+          notes: undefined,
           expiresAt: prop.expires_at,
         };
       }

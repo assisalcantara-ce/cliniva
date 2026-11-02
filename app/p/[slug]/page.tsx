@@ -240,6 +240,7 @@ export default async function PublicTherapistPage({ params }: PageProps) {
       {/* Widget de Chat com IA Corporativa Cliniva embutido com isolamento via slug */}
       <script
         src="/widget.js"
+        data-slug={therapist.slug}
         data-therapist={therapist.slug}
         data-primary-color="#0d9488"
         defer

@@ -275,32 +275,47 @@ export async function POST(req: NextRequest) {
             }
           } else if (fnName === "propor_agendamento") {
             try {
+              // Converte horários de Brasília ou texto para ISO 8601 canônico se necessário
+              let scheduledStartIso = fnArgs.data_horario_inicio;
+              let scheduledEndIso = fnArgs.data_horario_fim;
+
+              try {
+                scheduledStartIso = new Date(fnArgs.data_horario_inicio).toISOString();
+                scheduledEndIso = new Date(fnArgs.data_horario_fim).toISOString();
+              } catch (dateParseErr) {
+                console.warn("[POST /api/public/chat] Falha no parse ISO de data da proposta:", dateParseErr);
+              }
+
+              // Normaliza o telefone do paciente (mantém apenas dígitos)
+              const cleanWhatsapp = String(fnArgs.whatsapp || "").replace(/\D/g, "");
+
+              // Insere na tabela landing_chat_proposals (sem referenciar colunas inexistentes como patient_notes)
               const { data: proposal, error: propErr } = await supabase
                 .from("landing_chat_proposals")
                 .insert({
                   session_id: session.id,
                   therapist_id: therapist.id,
-                  scheduled_start: fnArgs.data_horario_inicio,
-                  scheduled_end: fnArgs.data_horario_fim,
-                  patient_name: fnArgs.nome_paciente,
-                  patient_whatsapp: fnArgs.whatsapp,
-                  patient_notes: fnArgs.observacoes || null,
+                  scheduled_start: scheduledStartIso,
+                  scheduled_end: scheduledEndIso,
+                  patient_name: String(fnArgs.nome_paciente || "").trim(),
+                  patient_whatsapp: cleanWhatsapp,
                   status: "proposed",
                 })
-                .select()
+                .select("id, expires_at")
                 .single();
 
               if (propErr || !proposal) {
+                console.error("[POST /api/public/chat] Erro ao gravar landing_chat_proposals:", propErr);
                 throw new Error("Erro ao gravar proposta temporária no servidor.");
               }
 
               proposedData = {
                 proposalId: proposal.id,
-                fullName: fnArgs.nome_paciente,
-                whatsapp: fnArgs.whatsapp,
-                scheduledStart: fnArgs.data_horario_inicio,
-                scheduledEnd: fnArgs.data_horario_fim,
-                notes: fnArgs.observacoes,
+                fullName: String(fnArgs.nome_paciente || "").trim(),
+                whatsapp: cleanWhatsapp,
+                scheduledStart: scheduledStartIso,
+                scheduledEnd: scheduledEndIso,
+                notes: fnArgs.observacoes || undefined,
                 expiresAt: proposal.expires_at,
               };
 
@@ -311,9 +326,10 @@ export async function POST(req: NextRequest) {
                   "Proposta gerada com sucesso na tela do usuário. Oriente o paciente a revisar os dados, aceitar os termos de consentimento e clicar em 'Confirmar Agendamento'.",
               });
             } catch (err: any) {
+              console.error("[POST /api/public/chat] Erro na função propor_agendamento:", err);
               toolResultStr = JSON.stringify({
                 status: "error",
-                message: err.message || "Falha ao registrar proposta de agendamento.",
+                message: "Falha ao registrar proposta de agendamento na agenda.",
               });
             }
           }

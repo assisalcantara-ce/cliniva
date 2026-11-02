@@ -32,8 +32,10 @@
     return scripts[scripts.length - 1];
   })();
 
+  var rawSlug = (currentScript && (currentScript.getAttribute("data-slug") || currentScript.getAttribute("data-therapist"))) || "dra-cristiane";
+
   var config = {
-    slug: (currentScript && currentScript.getAttribute("data-slug")) || "dra-cristiane",
+    slug: rawSlug,
     apiUrl: ((currentScript && currentScript.getAttribute("data-api-url")) || "").replace(/\/$/, ""),
     primaryColor: (currentScript && currentScript.getAttribute("data-primary-color")) || "#68152D",
     accentColor: (currentScript && currentScript.getAttribute("data-accent-color")) || "#B78449",
@@ -43,7 +45,7 @@
     subtitle: (currentScript && currentScript.getAttribute("data-subtitle")) || "Atendimento online",
     avatarUrl: (currentScript && (currentScript.getAttribute("data-avatar-url") || currentScript.getAttribute("data-launcher-image"))) || "",
     launcherImage: (currentScript && currentScript.getAttribute("data-launcher-image")) || "",
-    storageKey: "cliniva_chat_session_" + ((currentScript && currentScript.getAttribute("data-slug")) || "default"),
+    storageKey: "cliniva_chat_session_" + rawSlug,
   };
 
   if (!config.apiUrl && currentScript && currentScript.src) {
@@ -367,9 +369,9 @@
       display: flex !important;
       flex-direction: column !important;
       gap: 14px !important;
-      scroll-behavior: smooth !important;
       margin: 0 !important;
       background: transparent !important;
+      -webkit-overflow-scrolling: touch !important;
     }
 
     #cliniva-chat-widget-root .cliniva-messages-box::-webkit-scrollbar {
@@ -388,9 +390,12 @@
       display: flex !important;
       flex-direction: column !important;
       max-width: 88% !important;
-      animation: clinivaMsgIn 0.2s ease-out !important;
       margin: 0 !important;
       padding: 0 !important;
+    }
+
+    #cliniva-chat-widget-root .cliniva-msg-row.new-anim {
+      animation: clinivaMsgIn 0.2s ease-out !important;
     }
 
     #cliniva-chat-widget-root .cliniva-msg-row.assistant {
@@ -921,8 +926,7 @@
       created_at: new Date().toISOString(),
     });
     state.isLoading = true;
-    render();
-    scrollToBottom();
+    render(true);
 
     var payload = {
       slug: config.slug,
@@ -961,13 +965,11 @@
           state.consentChecked = false;
         }
         render();
-        scrollToBottom();
       })
       .catch(function (err) {
         state.isLoading = false;
         state.errorMessage = err.message || "Não foi possível enviar a mensagem.";
         render();
-        scrollToBottom();
       });
   }
 
@@ -1019,14 +1021,12 @@
           content: `Sua solicitação de agendamento foi registrada com sucesso sob o status "Aguardando Aprovação". A equipe entrará em contato em breve para formalização final.`,
           created_at: new Date().toISOString(),
         });
-        render();
-        scrollToBottom();
+        render(true);
       })
       .catch(function (err) {
         state.isConfirming = false;
         state.errorMessage = err.message || "Falha na confirmação.";
-        render();
-        scrollToBottom();
+        render(true);
       });
   }
 
@@ -1038,12 +1038,153 @@
       content: "Proposta cancelada. Se desejar verificar outro dia ou horário, basta me dizer!",
       created_at: new Date().toISOString(),
     });
-    render();
-    scrollToBottom();
+    render(true);
   }
 
   // 8. Renderização da Interface
-  function render() {
+  function renderMessagesContent() {
+    var content = "";
+
+    if (state.errorMessage) {
+      content += `
+        <div class="cliniva-error-card">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>${escapeHtml(state.errorMessage)}</div>
+        </div>
+      `;
+    }
+
+    content += state.messages.map(function (m, idx) {
+      var timeStr = formatTime(m.created_at);
+      var isLast = idx === state.messages.length - 1;
+      return `
+        <div class="cliniva-msg-row ${m.role === "user" ? "user" : "assistant"} ${isLast ? "new-anim" : ""}">
+          <div class="cliniva-msg-bubble">${escapeHtml(m.content)}</div>
+          ${timeStr ? `<div class="cliniva-msg-time">${timeStr}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+
+    if (state.isLoading) {
+      content += `
+        <div class="cliniva-typing-indicator new-anim">
+          <span class="cliniva-typing-text">Assistente digitando</span>
+          <div class="cliniva-dots-group">
+            <span class="cliniva-dot"></span>
+            <span class="cliniva-dot"></span>
+            <span class="cliniva-dot"></span>
+          </div>
+        </div>
+      `;
+    }
+
+    if (state.pendingProposal) {
+      content += `
+        <div class="cliniva-proposal-card new-anim">
+          <div class="cliniva-proposal-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${config.accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Resumo da Solicitação</span>
+          </div>
+          <div class="cliniva-proposal-row">
+            <span class="cliniva-proposal-label">Paciente:</span>
+            <span class="cliniva-proposal-value">${escapeHtml(state.pendingProposal.fullName)}</span>
+          </div>
+          <div class="cliniva-proposal-row">
+            <span class="cliniva-proposal-label">WhatsApp:</span>
+            <span class="cliniva-proposal-value">${escapeHtml(state.pendingProposal.whatsapp)}</span>
+          </div>
+          <div class="cliniva-proposal-row">
+            <span class="cliniva-proposal-label">Data e Horário:</span>
+            <span class="cliniva-proposal-value" style="color:${config.primaryColor};">
+              ${escapeHtml(new Date(state.pendingProposal.scheduledStart).toLocaleDateString("pt-BR"))} às ${escapeHtml(new Date(state.pendingProposal.scheduledStart).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }))}
+            </span>
+          </div>
+
+          <div class="cliniva-consent-box">
+            <label>
+              <input type="checkbox" id="cliniva-consent-chk" ${state.consentChecked ? "checked" : ""}>
+              <span>Concordo com o envio dos dados para <strong>finalidade exclusiva</strong> de contato do consultório (LGPD). Compreendo que a solicitação fica <strong>aguardando aprovação</strong>.</span>
+            </label>
+          </div>
+
+          <div class="cliniva-actions-row">
+            <button type="button" class="cliniva-btn-cancel" id="cliniva-cancel-prop">Alterar / Cancelar</button>
+            <button type="button" class="cliniva-btn-confirm" id="cliniva-confirm-prop" ${(!state.consentChecked || state.isConfirming) ? "disabled" : ""}>
+              ${state.isConfirming ? "Enviando..." : "Confirmar Solicitação"}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    if (state.completedAppointment) {
+      content += `
+        <div class="cliniva-success-card new-anim">
+          <div style="font-weight:700; margin-bottom:2px;">✓ Solicitação de Agendamento Registrada!</div>
+          <div>Status: <strong>Aguardando Aprovação</strong>. A recepção entrará em contato via WhatsApp para formalização final.</div>
+        </div>
+      `;
+    }
+
+    if (state.messages.length === 1 && !state.pendingProposal && !state.isLoading) {
+      content += `
+        <div class="cliniva-quick-prompts-wrapper">
+          <div class="cliniva-quick-prompts-label">Sugestões de Perguntas:</div>
+          <div class="cliniva-quick-prompts-chips">
+            ${INITIAL_SUGGESTIONS.map(function (sug) {
+              return `<button type="button" class="cliniva-prompt-chip" data-prompt="${escapeHtml(sug)}">${escapeHtml(sug)}</button>`;
+            }).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    return content;
+  }
+
+  function attachProposalListeners() {
+    var chkConsent = document.getElementById("cliniva-consent-chk");
+    if (chkConsent) {
+      chkConsent.onchange = function (e) {
+        state.consentChecked = e.target.checked;
+        var btnConfirm = document.getElementById("cliniva-confirm-prop");
+        if (btnConfirm) btnConfirm.disabled = !state.consentChecked || state.isConfirming;
+      };
+    }
+
+    var btnConfirm = document.getElementById("cliniva-confirm-prop");
+    if (btnConfirm) {
+      btnConfirm.onclick = function () {
+        confirmAppointment();
+      };
+    }
+
+    var btnCancel = document.getElementById("cliniva-cancel-prop");
+    if (btnCancel) {
+      btnCancel.onclick = function () {
+        cancelProposal();
+      };
+    }
+
+    var promptChips = container.querySelectorAll(".cliniva-prompt-chip");
+    promptChips.forEach(function (chip) {
+      chip.onclick = function () {
+        var text = chip.getAttribute("data-prompt");
+        sendMessage(text);
+      };
+    });
+  }
+
+  function render(forceScroll) {
     if (!state.isOpen) {
       // Launcher Fechado
       var avatarContent = config.launcherImage || config.avatarUrl ? `
@@ -1078,15 +1219,34 @@
         btnOpen.onclick = function () {
           state.isOpen = true;
           state.isMinimized = false;
-          render();
-          scrollToBottom();
+          render(true);
           focusInput();
         };
       }
       return;
     }
 
-    // Janela Aberta
+    var existingBox = document.getElementById("cliniva-msg-box");
+    var existingCard = container.querySelector(".cliniva-card-window");
+
+    // Otimização: se o card já existe e o estado de minimização não mudou, atualiza apenas o conteúdo de mensagens e inputs
+    if (existingBox && existingCard && !existingCard.classList.contains("minimized") && !state.isMinimized) {
+      var isNearBottom = (existingBox.scrollHeight - existingBox.scrollTop - existingBox.clientHeight) <= 120;
+      existingBox.innerHTML = renderMessagesContent();
+      attachProposalListeners();
+
+      var inp = document.getElementById("cliniva-input-text");
+      var btnSubmit = document.getElementById("cliniva-btn-submit");
+      if (inp) inp.disabled = state.isLoading || state.isConfirming;
+      if (btnSubmit) btnSubmit.disabled = state.isLoading || state.isConfirming;
+
+      if (forceScroll || isNearBottom) {
+        scrollToBottom();
+      }
+      return;
+    }
+
+    // Janela Aberta (Renderização completa da casca)
     var headerAvatar = (config.avatarUrl || config.launcherImage) ? `
       <img class="cliniva-header-avatar-img" src="${escapeHtml(config.avatarUrl || config.launcherImage)}" alt="Avatar" onerror="this.remove(); document.getElementById('cliniva-hdr-fallback') && (document.getElementById('cliniva-hdr-fallback').style.display='flex');" />
       <div id="cliniva-hdr-fallback" class="cliniva-header-avatar-fallback" style="display:none;">
@@ -1149,100 +1309,7 @@
       // 2. CORPO DE MENSAGENS
       html += `
         <div class="cliniva-messages-box" id="cliniva-msg-box">
-          ${state.errorMessage ? `
-            <div class="cliniva-error-card">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-              <div>${escapeHtml(state.errorMessage)}</div>
-            </div>
-          ` : ""}
-
-          ${state.messages.map(function (m) {
-            var timeStr = formatTime(m.created_at);
-            return `
-              <div class="cliniva-msg-row ${m.role === "user" ? "user" : "assistant"}">
-                <div class="cliniva-msg-bubble">${escapeHtml(m.content)}</div>
-                ${timeStr ? `<div class="cliniva-msg-time">${timeStr}</div>` : ""}
-              </div>
-            `;
-          }).join("")}
-
-          ${state.isLoading ? `
-            <div class="cliniva-typing-indicator">
-              <span class="cliniva-typing-text">Assistente digitando</span>
-              <div class="cliniva-dots-group">
-                <span class="cliniva-dot"></span>
-                <span class="cliniva-dot"></span>
-                <span class="cliniva-dot"></span>
-              </div>
-            </div>
-          ` : ""}
-
-          <!-- CARD DE PROPOSTA DE AGENDAMENTO -->
-          ${state.pendingProposal ? `
-            <div class="cliniva-proposal-card">
-              <div class="cliniva-proposal-header">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${config.accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span>Resumo da Solicitação</span>
-              </div>
-              <div class="cliniva-proposal-row">
-                <span class="cliniva-proposal-label">Paciente:</span>
-                <span class="cliniva-proposal-value">${escapeHtml(state.pendingProposal.fullName)}</span>
-              </div>
-              <div class="cliniva-proposal-row">
-                <span class="cliniva-proposal-label">WhatsApp:</span>
-                <span class="cliniva-proposal-value">${escapeHtml(state.pendingProposal.whatsapp)}</span>
-              </div>
-              <div class="cliniva-proposal-row">
-                <span class="cliniva-proposal-label">Data e Horário:</span>
-                <span class="cliniva-proposal-value" style="color:${config.primaryColor};">
-                  ${escapeHtml(new Date(state.pendingProposal.scheduledStart).toLocaleDateString("pt-BR"))} às ${escapeHtml(new Date(state.pendingProposal.scheduledStart).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }))}
-                </span>
-              </div>
-
-              <div class="cliniva-consent-box">
-                <label>
-                  <input type="checkbox" id="cliniva-consent-chk" ${state.consentChecked ? "checked" : ""}>
-                  <span>Concordo com o envio dos dados para <strong>finalidade exclusiva</strong> de contato do consultório (LGPD). Compreendo que a solicitação fica <strong>aguardando aprovação</strong>.</span>
-                </label>
-              </div>
-
-              <div class="cliniva-actions-row">
-                <button type="button" class="cliniva-btn-cancel" id="cliniva-cancel-prop">Alterar / Cancelar</button>
-                <button type="button" class="cliniva-btn-confirm" id="cliniva-confirm-prop" ${(!state.consentChecked || state.isConfirming) ? "disabled" : ""}>
-                  ${state.isConfirming ? "Enviando..." : "Confirmar Solicitação"}
-                </button>
-              </div>
-            </div>
-          ` : ""}
-
-          <!-- CARD DE SUCESSO -->
-          ${state.completedAppointment ? `
-            <div class="cliniva-success-card">
-              <div style="font-weight:700; margin-bottom:2px;">✓ Solicitação de Agendamento Registrada!</div>
-              <div>Status: <strong>Aguardando Aprovação</strong>. A recepção entrará em contato via WhatsApp para formalização final.</div>
-            </div>
-          ` : ""}
-
-          <!-- 3. PERGUNTAS SUGERIDAS (Dentro do fluxo de mensagens, logo após a mensagem inicial) -->
-          ${(state.messages.length === 1 && !state.pendingProposal && !state.isLoading) ? `
-            <div class="cliniva-quick-prompts-wrapper">
-              <div class="cliniva-quick-prompts-label">Sugestões de Perguntas:</div>
-              <div class="cliniva-quick-prompts-chips">
-                ${INITIAL_SUGGESTIONS.map(function (sug) {
-                  return `<button type="button" class="cliniva-prompt-chip" data-prompt="${escapeHtml(sug)}">${escapeHtml(sug)}</button>`;
-                }).join("")}
-              </div>
-            </div>
-          ` : ""}
+          ${renderMessagesContent()}
         </div>
       `;
 
@@ -1279,14 +1346,13 @@
     html += `</div>`;
     container.innerHTML = html;
 
-    // Vinculação dos Event Listeners
+    // Vinculação dos Event Listeners do Header
     var btnMin = document.getElementById("cliniva-btn-min");
     if (btnMin) {
       btnMin.onclick = function () {
         state.isMinimized = !state.isMinimized;
-        render();
+        render(true);
         if (!state.isMinimized) {
-          scrollToBottom();
           focusInput();
         }
       };
@@ -1300,36 +1366,7 @@
       };
     }
 
-    var chkConsent = document.getElementById("cliniva-consent-chk");
-    if (chkConsent) {
-      chkConsent.onchange = function (e) {
-        state.consentChecked = e.target.checked;
-        var btnConfirm = document.getElementById("cliniva-confirm-prop");
-        if (btnConfirm) btnConfirm.disabled = !state.consentChecked || state.isConfirming;
-      };
-    }
-
-    var btnConfirm = document.getElementById("cliniva-confirm-prop");
-    if (btnConfirm) {
-      btnConfirm.onclick = function () {
-        confirmAppointment();
-      };
-    }
-
-    var btnCancel = document.getElementById("cliniva-cancel-prop");
-    if (btnCancel) {
-      btnCancel.onclick = function () {
-        cancelProposal();
-      };
-    }
-
-    var promptChips = container.querySelectorAll(".cliniva-prompt-chip");
-    promptChips.forEach(function (chip) {
-      chip.onclick = function () {
-        var text = chip.getAttribute("data-prompt");
-        sendMessage(text);
-      };
-    });
+    attachProposalListeners();
 
     var form = document.getElementById("cliniva-form-msg");
     if (form) {
@@ -1342,6 +1379,8 @@
         }
       };
     }
+
+    scrollToBottom();
   }
 
   function focusInput() {
@@ -1351,11 +1390,13 @@
     }, 150);
   }
 
-  function scrollToBottom() {
-    setTimeout(function () {
-      var box = document.getElementById("cliniva-msg-box");
-      if (box) box.scrollTop = box.scrollHeight;
-    }, 50);
+  function scrollToBottom(force) {
+    var box = document.getElementById("cliniva-msg-box");
+    if (!box) return;
+    var isNearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) <= 120;
+    if (force || isNearBottom) {
+      box.scrollTop = box.scrollHeight;
+    }
   }
 
   // Inicialização
