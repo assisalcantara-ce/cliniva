@@ -9,16 +9,22 @@ import { cn } from "@/lib/utils";
 export function AppShell({
   children,
   aiOnline: initialAiOnline,
+  initialAiMode = "verificando",
   aiProvider,
 }: {
   children: ReactNode;
-  aiOnline: boolean;
+  aiOnline?: boolean;
+  initialAiMode?: "openai" | "groq" | "offline" | "verificando";
   aiProvider: "openai" | "mock";
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [aiMode, setAiMode] = useState<"openai" | "groq" | "offline">(
-    initialAiOnline ? "openai" : "offline",
+  const [aiMode, setAiMode] = useState<"openai" | "groq" | "offline" | "verificando">(
+    initialAiMode !== "verificando"
+      ? initialAiMode
+      : initialAiOnline
+      ? "openai"
+      : "verificando",
   );
 
   // Carrega preferência do sidebar (compacto vs expandido) do localStorage
@@ -53,7 +59,12 @@ export function AppShell({
       try {
         const res = await fetch("/api/settings", { cache: "no-store" });
         if (!res.ok) {
-          setAiMode("offline");
+          // Se for erro de autenticação explícito (401), o copiloto não está acessível
+          if (res.status === 401) {
+            setAiMode("offline");
+          }
+          // Em caso de falha transitória de servidor (500, 502, 503) ou outros erros de rede,
+          // preserva o modo anterior e NÃO força para offline levianamente
           return;
         }
         const json = (await res.json()) as { ai?: { has_key?: boolean; has_groq?: boolean } };
@@ -66,8 +77,10 @@ export function AppShell({
         } else {
           setAiMode("offline");
         }
-      } catch {
-        setAiMode("offline");
+      } catch (err) {
+        // Falha de rede (offline local do navegador ou timeout de conexão):
+        // Não assume que o copiloto está offline se já tínhamos um modo definido ou se é transitório
+        console.warn("[AppShell] Falha na verificação de rede para status do copiloto:", err);
       }
     }
 

@@ -38,7 +38,7 @@ export function AppTopbar({
   aiMode,
   onOpenSidebar,
 }: {
-  aiMode: "openai" | "groq" | "offline";
+  aiMode: "openai" | "groq" | "offline" | "verificando";
   onOpenSidebar: () => void;
 }) {
   const pathname = usePathname();
@@ -50,6 +50,8 @@ export function AppTopbar({
       ? "Copiloto Premium ativado"
       : aiMode === "groq"
       ? "Copiloto gratuito ativado"
+      : aiMode === "verificando"
+      ? "Verificando Copiloto..."
       : "Copiloto offline";
 
   const aiColors =
@@ -57,6 +59,8 @@ export function AppTopbar({
       ? "border-green-300 bg-green-50 text-green-900"
       : aiMode === "groq"
       ? "border-blue-300 bg-blue-50 text-blue-900"
+      : aiMode === "verificando"
+      ? "border-amber-300 bg-amber-50 text-amber-900"
       : "border-red-300 bg-red-50 text-red-900";
 
   const dotColor =
@@ -64,6 +68,8 @@ export function AppTopbar({
       ? "bg-green-500"
       : aiMode === "groq"
       ? "bg-blue-500"
+      : aiMode === "verificando"
+      ? "bg-amber-500 animate-pulse"
       : "bg-red-500";
 
   async function handleLogout() {

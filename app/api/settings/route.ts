@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTherapistIdFromRequest } from "@/lib/auth";
+import { getTherapistIdFromRequest, authError } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { encryptOpenAiKey } from "@/lib/ai/openaiKey";
 
@@ -34,7 +34,15 @@ const settingsSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const therapistId = getTherapistIdFromRequest(req);
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code = (err && typeof err === "object" && "code" in err) ? String(err.code) : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const supabase = createSupabaseAdminClient();
 
     const therapistResult = await supabase
@@ -109,7 +117,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const therapistId = getTherapistIdFromRequest(req);
+    let therapistId: string;
+    try {
+      therapistId = getTherapistIdFromRequest(req);
+    } catch (err: unknown) {
+      const code = (err && typeof err === "object" && "code" in err) ? String(err.code) : "UNAUTHENTICATED";
+      const { error, status } = authError(code);
+      return NextResponse.json({ error }, { status });
+    }
+
     const supabase = createSupabaseAdminClient();
 
     // Update therapist record
