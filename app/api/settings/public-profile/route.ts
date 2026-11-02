@@ -35,6 +35,7 @@ const updatePublicProfileSchema = z.object({
   specialties: z.array(z.string().trim().min(1).max(50)).max(15).optional(),
   services: z.array(publicServiceItemSchema).max(10).optional(),
   modalities: z.array(z.enum(["online", "presencial"])).min(1).max(2).optional(),
+  public_page_enabled: z.boolean().optional(),
   public_booking_enabled: z.boolean().optional(),
 });
 
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest) {
     const supabase = createSupabaseAdminClient();
     const { data: therapist, error } = await supabase
       .from("therapists")
-      .select("id, display_name, public_slug, crp, bio, photo_url, phone, email, city, state, public_booking_enabled, is_active")
+      .select("id, display_name, public_slug, crp, bio, photo_url, phone, email, city, state, headline, specialties, services, modalities, public_page_enabled, public_booking_enabled, is_active")
       .eq("id", therapistId)
       .maybeSingle();
 
@@ -82,6 +83,11 @@ export async function GET(req: NextRequest) {
           email: therapist.email || "",
           city: therapist.city || "",
           state: therapist.state || "",
+          headline: therapist.headline || "",
+          specialties: Array.isArray(therapist.specialties) ? therapist.specialties : [],
+          services: Array.isArray(therapist.services) ? therapist.services : [],
+          modalities: Array.isArray(therapist.modalities) ? therapist.modalities : ["online"],
+          public_page_enabled: therapist.public_page_enabled ?? true,
           public_booking_enabled: therapist.public_booking_enabled ?? false,
           is_active: therapist.is_active ?? true,
         },
@@ -165,6 +171,7 @@ export async function POST(req: NextRequest) {
   const updatePayload: Record<string, unknown> = {};
   if (data.display_name !== undefined) updatePayload.display_name = data.display_name;
   if (data.public_slug !== undefined) updatePayload.public_slug = data.public_slug;
+  if (data.headline !== undefined) updatePayload.headline = data.headline;
   if (data.crp !== undefined) updatePayload.crp = data.crp;
   if (data.bio !== undefined) updatePayload.bio = data.bio;
   if (data.photo_url !== undefined) updatePayload.photo_url = data.photo_url;
@@ -172,13 +179,17 @@ export async function POST(req: NextRequest) {
   if (data.email !== undefined) updatePayload.email = data.email || null;
   if (data.city !== undefined) updatePayload.city = data.city;
   if (data.state !== undefined) updatePayload.state = data.state;
+  if (data.specialties !== undefined) updatePayload.specialties = data.specialties;
+  if (data.services !== undefined) updatePayload.services = data.services;
+  if (data.modalities !== undefined) updatePayload.modalities = data.modalities;
+  if (data.public_page_enabled !== undefined) updatePayload.public_page_enabled = data.public_page_enabled;
   if (data.public_booking_enabled !== undefined) updatePayload.public_booking_enabled = data.public_booking_enabled;
 
   const { data: updatedTherapist, error: updateError } = await supabase
     .from("therapists")
     .update(updatePayload)
     .eq("id", therapistId)
-    .select("id, display_name, public_slug, crp, bio, photo_url, phone, email, city, state, public_booking_enabled")
+    .select("id, display_name, public_slug, crp, bio, photo_url, phone, email, city, state, headline, specialties, services, modalities, public_page_enabled, public_booking_enabled")
     .single();
 
   if (updateError) {

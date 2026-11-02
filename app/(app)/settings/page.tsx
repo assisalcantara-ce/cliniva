@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 type PublicProfileData = {
   public_slug: string;
   display_name: string;
+  headline?: string;
   crp: string;
   bio: string;
   photo_url: string;
@@ -16,6 +17,16 @@ type PublicProfileData = {
   email: string;
   city: string;
   state: string;
+  specialties: string[];
+  services: Array<{
+    id: string;
+    title: string;
+    description: string;
+    durationMinutes: number;
+    priceFormatted?: string;
+  }>;
+  modalities: string[];
+  public_page_enabled: boolean;
   public_booking_enabled: boolean;
 };
 
@@ -139,6 +150,7 @@ export default function SettingsPage() {
   const [publicProfile, setPublicProfile] = useState<PublicProfileData>({
     public_slug: "",
     display_name: "",
+    headline: "",
     crp: "",
     bio: "",
     photo_url: "",
@@ -146,7 +158,18 @@ export default function SettingsPage() {
     email: "",
     city: "",
     state: "",
+    specialties: [],
+    services: [],
+    modalities: ["online"],
+    public_page_enabled: true,
     public_booking_enabled: true,
+  });
+  const [newSpecialty, setNewSpecialty] = useState("");
+  const [newService, setNewService] = useState({
+    title: "",
+    description: "",
+    durationMinutes: 50,
+    priceFormatted: "",
   });
   const [hasPublicPageAccess, setHasPublicPageAccess] = useState<boolean>(false);
   const [savingPublicProfile, setSavingPublicProfile] = useState<boolean>(false);
@@ -203,6 +226,7 @@ export default function SettingsPage() {
               setPublicProfile({
                 public_slug: pubData.profile.public_slug || "",
                 display_name: pubData.profile.display_name || "",
+                headline: pubData.profile.headline || "",
                 crp: pubData.profile.crp || "",
                 bio: pubData.profile.bio || "",
                 photo_url: pubData.profile.photo_url || "",
@@ -210,6 +234,10 @@ export default function SettingsPage() {
                 email: pubData.profile.email || "",
                 city: pubData.profile.city || "",
                 state: pubData.profile.state || "",
+                specialties: Array.isArray(pubData.profile.specialties) ? pubData.profile.specialties : [],
+                services: Array.isArray(pubData.profile.services) ? pubData.profile.services : [],
+                modalities: Array.isArray(pubData.profile.modalities) ? pubData.profile.modalities : ["online"],
+                public_page_enabled: pubData.profile.public_page_enabled ?? true,
                 public_booking_enabled: pubData.profile.public_booking_enabled ?? true,
               });
             }
@@ -487,6 +515,19 @@ export default function SettingsPage() {
           }`}
         >
           IA
+        </button>
+        <button
+          onClick={() => setCurrentTab("pagina_publica")}
+          className={`px-4 py-3 font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+            currentTab === "pagina_publica"
+              ? "border-teal-600 text-teal-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <span>Página Pública</span>
+          {hasPublicPageAccess && (
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Recurso Ativo" />
+          )}
         </button>
         <button
           onClick={() => setCurrentTab("plano")}
@@ -916,17 +957,25 @@ export default function SettingsPage() {
                 <Card className="admin-card">
                   <CardHeader className="admin-card__header">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="admin-card__title">Endereço da Página Pública (/p/[slug])</CardTitle>
-                      {publicProfile.public_slug && (
-                        <a
-                          href={`/p/${publicProfile.public_slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs font-semibold text-teal-600 hover:text-teal-700 underline flex items-center gap-1"
-                        >
-                          Visualizar Página ↗
-                        </a>
-                      )}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+                        <div>
+                          <CardTitle className="admin-card__title">Página Pública Individual</CardTitle>
+                          <p className="text-xs text-slate-500 mt-1">Personalize sua apresentação, especialidades, serviços e agenda online.</p>
+                        </div>
+                        {publicProfile.public_slug ? (
+                          <a
+                            href={`/p/${publicProfile.public_slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold shadow-sm transition shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Visualizar Minha Página Pública
+                          </a>
+                        ) : null}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="admin-card__content space-y-4">
@@ -1007,6 +1056,151 @@ export default function SettingsPage() {
                           }
                           placeholder="Ex: 06/123456"
                         />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Título ou Subtítulo Profissional (Headline)
+                      </label>
+                      <Input
+                        type="text"
+                        value={publicProfile.headline || ""}
+                        onChange={(e) =>
+                          setPublicProfile((prev: PublicProfileData) => ({ ...prev, headline: e.target.value }))
+                        }
+                        placeholder="Ex: Psicóloga Clínica especialista em Terapia Cognitivo-Comportamental"
+                      />
+                    </div>
+
+                    {/* Ativação da Página e Modalidades */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2">
+                          Status de Publicação
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={publicProfile.public_page_enabled}
+                            onChange={(e) =>
+                              setPublicProfile((prev: PublicProfileData) => ({
+                                ...prev,
+                                public_page_enabled: e.target.checked,
+                              }))
+                            }
+                            className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                          />
+                          <span className="font-medium">
+                            {publicProfile.public_page_enabled ? "Página Publicada e Visível" : "Página Oculta (Rascunho)"}
+                          </span>
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2">
+                          Modalidades de Atendimento
+                        </label>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-1.5 text-xs text-slate-800 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={publicProfile.modalities.includes("online")}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setPublicProfile((prev) => {
+                                  const current = prev.modalities.filter((m) => m !== "online");
+                                  if (checked) current.push("online");
+                                  return { ...prev, modalities: current.length > 0 ? current : ["online"] };
+                                });
+                              }}
+                              className="h-3.5 w-3.5 rounded text-teal-600 focus:ring-teal-500"
+                            />
+                            <span>Online</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 text-xs text-slate-800 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={publicProfile.modalities.includes("presencial")}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setPublicProfile((prev) => {
+                                  const current = prev.modalities.filter((m) => m !== "presencial");
+                                  if (checked) current.push("presencial");
+                                  return { ...prev, modalities: current.length > 0 ? current : ["presencial"] };
+                                });
+                              }}
+                              className="h-3.5 w-3.5 rounded text-teal-600 focus:ring-teal-500"
+                            />
+                            <span>Presencial</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Especialidades */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Especialidades e Foco Clínico
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {publicProfile.specialties.map((spec, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200"
+                          >
+                            {spec}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPublicProfile((prev) => ({
+                                  ...prev,
+                                  specialties: prev.specialties.filter((_, i) => i !== idx),
+                                }));
+                              }}
+                              className="text-teal-600 hover:text-red-600 font-bold ml-1"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          value={newSpecialty}
+                          onChange={(e) => setNewSpecialty(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (newSpecialty.trim()) {
+                                setPublicProfile((prev) => ({
+                                  ...prev,
+                                  specialties: [...prev.specialties, newSpecialty.trim()],
+                                }));
+                                setNewSpecialty("");
+                              }
+                            }
+                          }}
+                          placeholder="Adicionar especialidade (ex: Ansiedade, TDAH, TCC) e pressione Enter"
+                          className="text-xs"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => {
+                            if (newSpecialty.trim()) {
+                              setPublicProfile((prev) => ({
+                                ...prev,
+                                specialties: [...prev.specialties, newSpecialty.trim()],
+                              }));
+                              setNewSpecialty("");
+                            }
+                          }}
+                          className="shrink-0 text-xs"
+                        >
+                          Adicionar
+                        </Button>
                       </div>
                     </div>
 
