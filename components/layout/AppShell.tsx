@@ -114,7 +114,7 @@ export function AppShell({
       <div
         className={cn(
           "flex min-h-screen flex-col transition-[padding] duration-300 ease-in-out",
-          isCollapsed ? "md:pl-[76px]" : "md:pl-[256px]"
+          isCollapsed ? "md:pl-[76px]" : "md:pl-[260px]"
         )}
       >
         <AppTopbar aiMode={aiMode} onOpenSidebar={() => setSidebarOpen(true)} />

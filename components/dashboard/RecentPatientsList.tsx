@@ -49,16 +49,16 @@ function getInitials(name: string): string {
 
 export function RecentPatientsList({ patients }: RecentPatientsListProps) {
   return (
-    <Card className="rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
+    <Card className="rounded-[18px] border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 p-5 pb-3.5">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#205F52]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#087A68]">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-[#25463E]">
+            <CardTitle className="text-base font-bold text-[#123D35]">
               Pacientes Recentes
             </CardTitle>
           </div>
@@ -66,25 +66,25 @@ export function RecentPatientsList({ patients }: RecentPatientsListProps) {
 
         <Link
           href="/patients"
-          className="text-xs font-semibold text-[#205F52] hover:text-[#18483E] inline-flex items-center gap-1 group"
+          className="text-xs font-semibold text-[#087A68] hover:text-[#065A4C] inline-flex items-center gap-1 group"
         >
           Ver todos
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </Link>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-2.5">
+      <CardContent className="p-4 space-y-2">
         {patients.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <p className="text-xs text-[#5C7870]">
               Nenhum paciente cadastrado ainda.
             </p>
-            <Button asChild size="sm" variant="ghost" className="mt-3 text-xs border border-emerald-200 text-[#205F52]">
+            <Button asChild size="sm" variant="ghost" className="mt-3 text-xs border border-emerald-200 text-[#087A68]">
               <Link href="/patients">Cadastrar Paciente</Link>
             </Button>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-1.5">
             {patients.map((p) => {
               const formattedName = formatPatientName(p.fullName);
               const lastDate = formatDate(p.lastSessionDate);
@@ -93,22 +93,22 @@ export function RecentPatientsList({ patients }: RecentPatientsListProps) {
               return (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-[#FCFDFD] hover:bg-[#F7FAF9] transition-all gap-3"
+                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50/80 transition-all gap-3 min-h-[68px]"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-bold text-[11px]">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-bold text-xs">
                       {initials}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-[#25463E] truncate leading-tight">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] font-bold text-[#123D35] truncate leading-tight">
                           {formattedName}
                         </p>
-                        <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-800 border border-emerald-100">
+                        <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-[#087A68] border border-emerald-100">
                           Ativo
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#5C7870] truncate leading-tight mt-0.5">
+                      <p className="text-[11px] text-[#5C7870] truncate leading-tight mt-1">
                         Última sessão: {lastDate}
                       </p>
                     </div>
@@ -118,10 +118,10 @@ export function RecentPatientsList({ patients }: RecentPatientsListProps) {
                     asChild
                     size="sm"
                     variant="ghost"
-                    className="h-7 px-2 text-xs font-semibold text-[#205F52] border border-slate-200 hover:bg-slate-50 shrink-0 rounded-lg gap-1"
+                    className="h-8 px-3 text-xs font-semibold text-[#087A68] hover:text-[#065A4C] hover:bg-emerald-50 border border-slate-200/90 rounded-xl gap-1.5 shadow-2xs"
                   >
                     <Link href={`/patients/${p.id}`}>
-                      <svg className="h-3 w-3 text-[#205F52]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg className="h-3.5 w-3.5 text-[#087A68]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                       </svg>
                       Prontuário

@@ -22,24 +22,24 @@ type NavItem = {
 function ClinivaBrandLogo({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <div className={cn("flex items-center gap-3 select-none", collapsed ? "justify-center" : "")}>
-      {/* Símbolo Cliniva Folha / Bem-estar Clínico */}
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white border border-white/20 shadow-xs">
-        <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-white" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" className="hidden" />
-          <path d="M11 20A7 7 0 0 1 4 13C4 9.13 7.13 6 11 6c4.97 0 9 4.03 9 9 0 2.12-.74 4.07-1.97 5.61" />
-          <path d="M12 10a4 4 0 0 0-4 4c0 1.66 1.01 3.08 2.45 3.68" />
-          <path d="M21 3v6h-6" />
+      {/* Símbolo Cliniva Folha / Bem-estar Clínico idêntico ao mockup */}
+      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-white shadow-xs">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-white">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" className="hidden" />
+          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66C7.5 17.5 9.5 13 17 11V8z" opacity="0.6"/>
+          <path d="M3.5 10.5C5 6.5 9 3 17 3c0 7-3.5 11.5-8 13.5-1.5.7-3.2.7-4.5.3C3.5 15.5 3 13 3.5 10.5z" />
+          <path d="M19 6c2.5 2 3 5.5 2 8.5-1.5-1-2.5-2.5-2.5-4.5 0-1.5.2-2.8.5-4z"/>
         </svg>
       </div>
 
       {!collapsed && (
         <div className="min-w-0 flex-1 animate-in fade-in duration-200">
           <div className="flex items-center gap-1.5">
-            <span className="text-xl font-bold tracking-tight text-white font-sans">
+            <span className="text-[22px] font-bold tracking-tight text-white font-sans">
               Cliniva
             </span>
           </div>
-          <p className="text-[11px] font-medium text-emerald-100/90 leading-tight">
+          <p className="text-[12px] font-medium text-emerald-100/90 leading-tight">
             Copilot Clínico
           </p>
         </div>
@@ -50,7 +50,7 @@ function ClinivaBrandLogo({ collapsed = false }: { collapsed?: boolean }) {
 
 function HomeIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -59,7 +59,7 @@ function HomeIcon({ className = "h-5 w-5", active }: { className?: string; activ
 
 function UsersIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -70,19 +70,15 @@ function UsersIcon({ className = "h-5 w-5", active }: { className?: string; acti
 
 function SessionsIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
-      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="16" x2="16" y1="2" y2="6" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="8" x2="8" y1="2" y2="6" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="3" x2="21" y1="10" y2="10" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 14v4M10 16h4" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
   );
 }
 
 function AppointmentsIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
       <rect width="18" height="18" x="3" y="4" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round" />
       <line x1="16" x2="16" y1="2" y2="6" strokeLinecap="round" strokeLinejoin="round" />
       <line x1="8" x2="8" y1="2" y2="6" strokeLinecap="round" strokeLinejoin="round" />
@@ -93,28 +89,23 @@ function AppointmentsIcon({ className = "h-5 w-5", active }: { className?: strin
 
 function MaterialsIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-      <polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="16" y1="13" x2="8" y2="13" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="16" y1="17" x2="8" y2="17" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="10" y1="9" x2="8" y2="9" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
     </svg>
   );
 }
 
 function SupportIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-6a9 9 0 0 1 18 0v6" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
     </svg>
   );
 }
 
 function SettingsIcon({ className = "h-5 w-5", active }: { className?: string; active?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.75"} className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
       <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -204,42 +195,42 @@ export function AppSidebar({
     {
       href: "/dashboard",
       label: "Meu Consultório",
-      subtitle: "Visão geral da sua prática",
+      subtitle: "",
       match: "exact",
       icon: HomeIcon,
     },
     {
       href: "/patients",
       label: "Pacientes",
-      subtitle: "Gestão de pacientes",
+      subtitle: "",
       match: "prefix",
       icon: UsersIcon,
     },
     {
       href: "/sessions",
       label: "Atendimentos",
-      subtitle: "Atendimentos e histórico",
+      subtitle: "",
       match: "prefix",
       icon: SessionsIcon,
     },
     {
       href: "/appointments",
       label: "Agenda",
-      subtitle: "Sua agenda e compromissos",
+      subtitle: "",
       match: "prefix",
       icon: AppointmentsIcon,
     },
     {
       href: "/materials",
       label: "Materiais e Recursos",
-      subtitle: "Recursos e documentos",
+      subtitle: "",
       match: "prefix",
       icon: MaterialsIcon,
     },
     {
       href: "/support",
       label: "Relatórios",
-      subtitle: "Ajuda e atendimento",
+      subtitle: "",
       match: "prefix",
       icon: SupportIcon,
     },
@@ -249,7 +240,7 @@ export function AppSidebar({
     {
       href: "/settings",
       label: "Configurações",
-      subtitle: "Sua conta e preferências",
+      subtitle: "",
       match: "prefix",
       icon: SettingsIcon,
     },
@@ -288,17 +279,17 @@ export function AppSidebar({
       {/* Sidebar Principal (Design Consultório Acolhedor / Mockup Aprovado) */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#F7F2EB] text-[#25463E] border-r border-[#E5DEC9]",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#FAF8F5] text-[#25463E] border-r border-[#E8E4DF]",
           "transition-all duration-300 ease-in-out select-none shadow-2xl md:shadow-none",
-          // Largura responsiva (compacto 76px vs expandido 256px)
-          collapsed ? "w-[76px]" : "w-[256px]",
+          // Largura expandida 260px vs compacta 76px
+          collapsed ? "w-[76px]" : "w-[260px]",
           // Visibilidade Mobile vs Desktop
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
         {/* Imagem de Fundo Decorativa (bg_lateral.png: poltrona, planta e luminária na base) */}
         <div
-          className="absolute inset-0 pointer-events-none z-0 bg-no-repeat bg-bottom bg-cover opacity-85"
+          className="absolute inset-0 pointer-events-none z-0 bg-no-repeat bg-bottom bg-cover opacity-90"
           style={{
             backgroundImage: "url('/img/bg_lateral.png')",
             backgroundPosition: "center bottom",
@@ -306,15 +297,15 @@ export function AppSidebar({
         />
 
         {/* Overlay sutil para garantir legibilidade absoluta dos itens de navegação */}
-        <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-[#F7F2EB] via-[#F7F2EB]/95 to-transparent h-[450px]" />
+        <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/90 to-transparent h-[450px]" />
 
-        {/* 1. Header do Sidebar (Bloco Verde da Marca + Botão de Recolher/Expandir) */}
+        {/* 1. Header do Sidebar (Bloco Verde da Marca: 112px de altura) */}
         <div
           className={cn(
-            "relative z-10 shrink-0 transition-all duration-300 bg-[#205F52] text-white shadow-sm",
+            "relative z-10 shrink-0 transition-all duration-300 bg-[#087A68] text-white shadow-xs",
             collapsed
-              ? "flex flex-col items-center gap-2 px-2 py-4 justify-center min-h-[80px]"
-              : "flex items-center justify-between px-5 py-4 min-h-[88px]"
+              ? "flex flex-col items-center gap-2 px-2 py-4 justify-center h-[96px]"
+              : "flex items-center justify-between px-6 py-4 h-[112px]"
           )}
         >
           <Link
@@ -332,7 +323,7 @@ export function AppSidebar({
             title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
             aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
             className={cn(
-              "hidden md:flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer",
+              "hidden md:flex h-[32px] w-[32px] items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer",
               collapsed ? "h-7 w-7 mt-1" : ""
             )}
           >
@@ -345,9 +336,9 @@ export function AppSidebar({
         </div>
 
         {/* 2. Área de Navegação com Scroll Discreto */}
-        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 pb-2 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-3.5 pt-5 pb-2 space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Seção Principal */}
-          <nav className="space-y-1.5" aria-label="Navegação principal">
+          <nav className="space-y-1" aria-label="Navegação principal">
             {mainNavItems.map((item) => {
               const active = isItemActive(pathname, item);
               const IconComponent = item.icon;
@@ -358,42 +349,40 @@ export function AppSidebar({
                     href={item.href}
                     onClick={() => onClose?.()}
                     className={cn(
-                      "relative flex items-center rounded-xl transition-all duration-200 text-sm font-semibold",
+                      "relative flex items-center transition-all duration-200",
                       collapsed
-                        ? "justify-center p-2.5 h-11 w-11 mx-auto"
-                        : "gap-3 px-3.5 py-2.5 w-full min-h-[44px]",
+                        ? "justify-center p-2.5 h-12 w-12 mx-auto rounded-xl"
+                        : "gap-3.5 px-4 w-full h-[54px] rounded-[14px]",
                       active
-                        ? "bg-[#D9EEE2] text-[#205F52] shadow-xs border-l-[3px] border-[#2C927B]"
-                        : "text-[#355D54] hover:text-[#205F52] hover:bg-[#EAF5ED]/90"
+                        ? "bg-[#087A68] text-white shadow-sm"
+                        : "text-[#355D54] hover:text-[#087A68] hover:bg-[#EAF5ED]/80"
                     )}
                   >
-                    {/* Ícone com Container Suave */}
+                    {/* Ícone */}
                     <div
                       className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-                        active
-                          ? "text-[#205F52]"
-                          : "text-[#355D54] group-hover:text-[#205F52]"
+                        "flex h-7 w-7 shrink-0 items-center justify-center transition-colors",
+                        active ? "text-white" : "text-[#355D54] group-hover:text-[#087A68]"
                       )}
                     >
-                      <IconComponent active={active} className="h-4 w-4" />
+                      <IconComponent active={active} className="h-[23px] w-[23px]" />
                     </div>
 
-                    {/* Texto (Expandido) */}
+                    {/* Texto (Expandido: 15px sem subtítulo) */}
                     {!collapsed && (
                       <div className="min-w-0 flex-1 flex items-center justify-between gap-1">
-                        <span className="block text-[13px] font-semibold leading-tight truncate">
+                        <span className={cn(
+                          "block text-[15px] leading-tight truncate",
+                          active ? "font-bold text-white" : "font-medium text-[#25463E]"
+                        )}>
                           {item.label}
                         </span>
 
-                        {/* Chevron ou Badge */}
-                        <div className="flex items-center gap-1.5 shrink-0 pl-1">
-                          {item.badge && (
-                            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white shadow-xs">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
+                        {item.badge && (
+                          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white shadow-xs">
+                            {item.badge}
+                          </span>
+                        )}
                       </div>
                     )}
                   </Link>
@@ -401,7 +390,7 @@ export function AppSidebar({
                   {/* Tooltip para Estado Compacto */}
                   {collapsed && (
                     <div className="pointer-events-none absolute left-[76px] top-1/2 -translate-y-1/2 z-50 hidden md:group-hover:flex items-center">
-                      <div className="rounded-lg bg-[#205F52] text-white px-3 py-1.5 text-xs font-semibold shadow-xl whitespace-nowrap">
+                      <div className="rounded-lg bg-[#087A68] text-white px-3 py-1.5 text-xs font-semibold shadow-xl whitespace-nowrap">
                         {item.label}
                       </div>
                     </div>
@@ -412,7 +401,7 @@ export function AppSidebar({
           </nav>
 
           {/* Seção Secundária (Configurações) */}
-          <div className="pt-2 border-t border-[#E5DEC9]/80 space-y-1.5">
+          <div className="pt-2 space-y-1">
             {configNavItems.map((item) => {
               const active = isItemActive(pathname, item);
               const IconComponent = item.icon;
@@ -423,29 +412,30 @@ export function AppSidebar({
                     href={item.href}
                     onClick={() => onClose?.()}
                     className={cn(
-                      "relative flex items-center rounded-xl transition-all duration-200 text-sm font-semibold",
+                      "relative flex items-center transition-all duration-200",
                       collapsed
-                        ? "justify-center p-2.5 h-11 w-11 mx-auto"
-                        : "gap-3 px-3.5 py-2.5 w-full min-h-[44px]",
+                        ? "justify-center p-2.5 h-12 w-12 mx-auto rounded-xl"
+                        : "gap-3.5 px-4 w-full h-[54px] rounded-[14px]",
                       active
-                        ? "bg-[#D9EEE2] text-[#205F52] shadow-xs border-l-[3px] border-[#2C927B]"
-                        : "text-[#355D54] hover:text-[#205F52] hover:bg-[#EAF5ED]/90"
+                        ? "bg-[#087A68] text-white shadow-sm"
+                        : "text-[#355D54] hover:text-[#087A68] hover:bg-[#EAF5ED]/80"
                     )}
                   >
                     <div
                       className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-                        active
-                          ? "text-[#205F52]"
-                          : "text-[#355D54] group-hover:text-[#205F52]"
+                        "flex h-7 w-7 shrink-0 items-center justify-center transition-colors",
+                        active ? "text-white" : "text-[#355D54] group-hover:text-[#087A68]"
                       )}
                     >
-                      <IconComponent active={active} className="h-4 w-4" />
+                      <IconComponent active={active} className="h-[23px] w-[23px]" />
                     </div>
 
                     {!collapsed && (
                       <div className="min-w-0 flex-1 flex items-center justify-between gap-1">
-                        <span className="block text-[13px] font-semibold leading-tight truncate">
+                        <span className={cn(
+                          "block text-[15px] leading-tight truncate",
+                          active ? "font-bold text-white" : "font-medium text-[#25463E]"
+                        )}>
                           {item.label}
                         </span>
                       </div>
@@ -454,7 +444,7 @@ export function AppSidebar({
 
                   {collapsed && (
                     <div className="pointer-events-none absolute left-[76px] top-1/2 -translate-y-1/2 z-50 hidden md:group-hover:flex items-center">
-                      <div className="rounded-lg bg-[#205F52] text-white px-3 py-1.5 text-xs font-semibold shadow-xl whitespace-nowrap">
+                      <div className="rounded-lg bg-[#087A68] text-white px-3 py-1.5 text-xs font-semibold shadow-xl whitespace-nowrap">
                         {item.label}
                       </div>
                     </div>
