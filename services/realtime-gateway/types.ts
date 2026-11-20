@@ -52,4 +52,5 @@ export interface RealtimeGatewayConfig {
   maxQueueSize?: number;
   allowedOrigins?: string[];
   authorizeEntitlement?: (therapistId: string) => Promise<{ allowed: boolean; reason?: string }>;
+  onDirectSend?: (sessionId: string, message: import("../../lib/audio/transport/types").ServerAudioTransportMessage) => void;
 }

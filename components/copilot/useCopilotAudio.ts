@@ -48,6 +48,8 @@ export function useCopilotAudio({
   patientId,
   enabled = false,
   endpointUrl,
+  onInterimTranscript,
+  onFinalTranscript,
   onError,
 }: UseCopilotAudioProps): UseCopilotAudioResult {
   const [state, setState] = useState<CopilotAudioOverallState>("idle");
@@ -73,13 +75,14 @@ export function useCopilotAudio({
     if (transportRef.current) {
       try {
         if (
-          transportRef.current.state === "connected" ||
-          transportRef.current.state === "paused"
+          therapistId &&
+          (transportRef.current.state === "connected" ||
+          transportRef.current.state === "paused")
         ) {
           transportRef.current.send({
             type: "session_stop",
             sessionId,
-            therapistId: therapistId || "current-therapist",
+            therapistId,
             timestamp: Date.now(),
           });
         }
@@ -97,12 +100,12 @@ export function useCopilotAudio({
     if (audioCaptureRef.current) {
       audioCaptureRef.current.pause();
     }
-    if (transportRef.current) {
+    if (transportRef.current && therapistId) {
       try {
         transportRef.current.send({
           type: "session_pause",
           sessionId,
-          therapistId: therapistId || "current-therapist",
+          therapistId,
           timestamp: Date.now(),
         });
       } catch {
@@ -113,12 +116,12 @@ export function useCopilotAudio({
   }, [sessionId, therapistId]);
 
   const handleResume = useCallback(() => {
-    if (transportRef.current) {
+    if (transportRef.current && therapistId) {
       try {
         transportRef.current.send({
           type: "session_resume",
           sessionId,
-          therapistId: therapistId || "current-therapist",
+          therapistId,
           timestamp: Date.now(),
         });
       } catch {
@@ -134,9 +137,16 @@ export function useCopilotAudio({
   const handleStart = useCallback(async () => {
     if (isStartedRef.current) return;
     setError(null);
+
+    if (!therapistId) {
+      setError("Identidade do terapeuta não confirmada.");
+      setState("error");
+      return;
+    }
+
     setState("connecting");
 
-    const effectiveTherapistId = therapistId || "current-therapist";
+    const effectiveTherapistId = therapistId;
     sequenceCounterRef.current = 0;
 
     // 1. Instanciar e Conectar WebSocketAudioTransport
@@ -167,6 +177,10 @@ export function useCopilotAudio({
         onMessage: (msg: ServerAudioTransportMessage) => {
           if (msg.type === "transport_error") {
             setError(msg.message);
+          } else if (msg.type === "transcript_interim") {
+            onInterimTranscript?.(msg.text);
+          } else if (msg.type === "transcript_final") {
+            onFinalTranscript?.(msg.text, msg.chunkId);
           }
         },
       }
@@ -241,7 +255,7 @@ export function useCopilotAudio({
       onError?.(structuredErr);
       handleStop();
     }
-  }, [sessionId, therapistId, patientId, endpointUrl, onError, handleStop]);
+  }, [sessionId, therapistId, patientId, endpointUrl, onError, handleStop, onInterimTranscript, onFinalTranscript]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;

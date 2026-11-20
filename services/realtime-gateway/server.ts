@@ -37,7 +37,7 @@ interface SessionContext {
  */
 export class RealtimeGatewayServer {
   private wss: WebSocketServer | null = null;
-  private readonly config: RealtimeGatewayConfig & Required<Omit<RealtimeGatewayConfig, "authorizeEntitlement">> & { authorizeEntitlement?: (therapistId: string) => Promise<{ allowed: boolean; reason?: string }> };
+  private readonly config: RealtimeGatewayConfig & Required<Omit<RealtimeGatewayConfig, "authorizeEntitlement" | "onDirectSend">> & { authorizeEntitlement?: (therapistId: string) => Promise<{ allowed: boolean; reason?: string }>; onDirectSend?: (sessionId: string, message: ServerAudioTransportMessage) => void };
   private readonly authenticator: RealtimeAuthenticator;
   private readonly sessions = new Map<WebSocket, SessionContext>();
   private readonly therapistConnections = new Map<string, Set<WebSocket>>();
@@ -55,6 +55,7 @@ export class RealtimeGatewayServer {
       maxQueueSize: config?.maxQueueSize ?? 50,
       allowedOrigins: config?.allowedOrigins ?? [],
       authorizeEntitlement: config?.authorizeEntitlement,
+      onDirectSend: config?.onDirectSend,
     };
     this.authenticator = this.config.authenticator;
   }
@@ -135,7 +136,7 @@ export class RealtimeGatewayServer {
           this.rejectAndClose(ws, 4403, authResult.reason ?? "Acesso negado: transcrição de áudio em tempo real requer plano Premium ou Profissional.");
           return;
         }
-      } catch (err: unknown) {
+      } catch {
         this.rejectAndClose(ws, 4500, "Erro ao verificar direitos da assinatura.");
         return;
       }
@@ -421,6 +422,14 @@ export class RealtimeGatewayServer {
       errorCode: code,
       timestamp: Date.now(),
     });
+  }
+
+  public sendToSession(sessionId: string, message: ServerAudioTransportMessage): void {
+    for (const context of this.sessions.values()) {
+      if (context.sessionId === sessionId) {
+        this.safeSend(context.ws, message);
+      }
+    }
   }
 
   private safeSend(ws: WebSocket, payload: ServerAudioTransportMessage): void {

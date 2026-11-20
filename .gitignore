@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scratch / temp (agent working files, não são entregáveis)
+/scratch/
+/test-results/

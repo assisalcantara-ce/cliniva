@@ -51,10 +51,13 @@ export class WebSocketAudioTransport implements IAudioTransport {
       throw new Error("WebSocketAudioTransport requer sessionId e therapistId obrigatórios.");
     }
 
+    const envGatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_WS_URL;
+
     const defaultUrl =
-      typeof window !== "undefined" && window.location
+      envGatewayUrl ||
+      (typeof window !== "undefined" && window.location
         ? `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.hostname || "localhost"}:8080/ws/audio`
-        : "ws://localhost:8080/ws/audio";
+        : "ws://localhost:8080/ws/audio");
 
     this.config = {
       sessionId: config.sessionId,

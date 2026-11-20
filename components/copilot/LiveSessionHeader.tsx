@@ -52,8 +52,32 @@ export function LiveSessionHeader({
   };
 
   const isPaused = streamState === "paused";
+  const isError = streamState === "error";
+  const isReconnecting = streamState === "reconnecting";
+  const isConnecting = streamState === "connecting";
+  const isListening = streamState === "listening" || streamState === "transcribing" || streamState === "connected";
   const initials = getInitials(patientName);
   const displayName = patientName || "Maria Zilda";
+
+  const statusLabel = isError
+    ? "Erro no pipeline de áudio"
+    : isPaused
+    ? "Sessão pausada"
+    : isReconnecting
+    ? "Reconectando áudio..."
+    : isConnecting
+    ? "Conectando ao Gateway..."
+    : isListening
+    ? "Escuta ativa conectada"
+    : "Sessão em andamento";
+
+  const statusDotClass = isError
+    ? "bg-rose-500"
+    : isPaused
+    ? "bg-amber-400"
+    : isReconnecting || isConnecting
+    ? "bg-amber-500 animate-ping"
+    : "bg-emerald-500 animate-pulse";
 
   return (
     <header className="flex items-center justify-between px-6 py-3.5 bg-white border-b border-slate-200/80 shadow-2xs shrink-0 select-none">
@@ -91,12 +115,8 @@ export function LiveSessionHeader({
       {/* 2. Centro: Status da Sessão + Timer de Alta Visibilidade */}
       <div className="flex flex-col items-center justify-center">
         <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              isPaused ? "bg-amber-400" : "bg-emerald-500 animate-pulse"
-            }`}
-          />
-          <span>{isPaused ? "Sessão pausada" : "Sessão em andamento"}</span>
+          <span className={`h-2 w-2 rounded-full ${statusDotClass}`} />
+          <span>{statusLabel}</span>
         </div>
         <span className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 tabular-nums leading-none mt-0.5">
           {formatTimer(elapsedSeconds)}

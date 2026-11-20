@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PreSessionView } from "./PreSessionView";
 import { LiveSessionView } from "./LiveSessionView";
@@ -13,6 +13,7 @@ export type SessionMode = "PRE_SESSION" | "LIVE" | "POST_SESSION";
 
 interface SessionWorkspaceProps {
   sessionId: string;
+  therapistId?: string | null;
   patientId?: string | null;
   patientName?: string | null;
   patientMemory?: string | null;
@@ -25,6 +26,7 @@ interface SessionWorkspaceProps {
 
 export function SessionWorkspace({
   sessionId,
+  therapistId,
   patientId,
   patientName,
   patientMemory,
@@ -45,10 +47,38 @@ export function SessionWorkspace({
     initialChunks,
   });
 
+  const persistedChunksRef = useRef<Set<string>>(new Set());
+
+  const handlePersistFinalTranscript = useCallback(
+    async (text: string, chunkId: string) => {
+      if (!text || !text.trim()) return;
+      if (chunkId && persistedChunksRef.current.has(chunkId)) return;
+      if (chunkId) persistedChunksRef.current.add(chunkId);
+
+      try {
+        await fetch(`/api/sessions/${sessionId}/transcript`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chunk_id: chunkId && chunkId.includes("-") ? chunkId : undefined,
+            text: text.trim(),
+            speaker: patientName || "Paciente",
+          }),
+        });
+      } catch (err) {
+        console.error("[SessionWorkspace] Falha ao persistir transcript:", err);
+      }
+    },
+    [sessionId, patientName]
+  );
+
   // Connect to Realtime Audio Capture & WebSocket Transport
   const audio = useCopilotAudio({
     sessionId,
+    therapistId: therapistId || undefined,
+    patientId: patientId || undefined,
     enabled: mode === "LIVE",
+    onFinalTranscript: handlePersistFinalTranscript,
   });
 
   const handleStartSession = useCallback(() => {

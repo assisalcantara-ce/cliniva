@@ -61,13 +61,31 @@ export class OpenAISTTProvider implements STTProvider {
     this.timeoutMs = options?.timeoutMs ?? 45_000;
   }
 
-  private resolveApiKey(): string {
+  private async resolveApiKey(therapistId?: string): Promise<string> {
     if (this.explicitApiKey) return this.explicitApiKey;
-    const envKey = process.env.OPENAI_API_KEY;
-    if (!envKey || envKey.trim().length === 0) {
-      throw new Error("Configuração ausente: OPENAI_API_KEY não foi definida para o provedor OpenAI STT.");
+
+    // 1. Prioriza a chave individual cadastrada e criptografada do terapeuta
+    if (therapistId) {
+      try {
+        const { getTherapistOpenAiKey } = await import("@/lib/db/therapist");
+        const { apiKey: therapistKey } = await getTherapistOpenAiKey({ therapistId });
+        if (therapistKey && therapistKey.startsWith("sk-")) {
+          return therapistKey.trim();
+        }
+      } catch {
+        // Segue para fallback corporativo
+      }
     }
-    return envKey.trim();
+
+    // 2. Chave corporativa configurada nas variáveis de ambiente
+    const envKey = process.env.OPENAI_API_KEY;
+    if (envKey && envKey.trim().length > 0) {
+      return envKey.trim();
+    }
+
+    throw new Error(
+      "Nenhuma chave OpenAI configurada para o provedor STT Whisper. Cadastre sua chave em Configurações > IA ou defina OPENAI_API_KEY no servidor."
+    );
   }
 
   /**
@@ -85,7 +103,7 @@ export class OpenAISTTProvider implements STTProvider {
       throw new Error("Áudio ausente para transcrição no OpenAISTTProvider.");
     }
 
-    const apiKey = this.resolveApiKey();
+    const apiKey = await this.resolveApiKey(therapistId);
 
     // 2. Monta FormData com o arquivo de áudio
     const contentType = mimeType ?? "audio/webm";

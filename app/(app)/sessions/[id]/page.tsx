@@ -10,6 +10,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
   const [isLoading, setIsLoading] = useState(true);
   const [patientId, setPatientId] = useState<string | null>(null);
+  const [therapistId, setTherapistId] = useState<string | null>(null);
   const [patientName, setPatientName] = useState<string | null>(null);
   const [sessionPatientMemory, setSessionPatientMemory] = useState<string | null>(null);
   const [lastSessionDate, setLastSessionDate] = useState<string | null>(null);
@@ -29,11 +30,14 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       const sessionRes = await fetch(`/api/sessions/${sessionId}`, { cache: "no-store" });
       if (sessionRes.ok) {
         const sessionJson = (await sessionRes.json()) as {
-          session?: { patient_id?: string; created_at?: string };
+          session?: { patient_id?: string; therapist_id?: string; created_at?: string };
           patient_name?: string | null;
         };
         if (sessionJson.session?.patient_id) {
           setPatientId(sessionJson.session.patient_id);
+        }
+        if (sessionJson.session?.therapist_id) {
+          setTherapistId(sessionJson.session.therapist_id);
         }
         if (typeof sessionJson.patient_name === "string") {
           setPatientName(sessionJson.patient_name);
@@ -181,6 +185,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   return (
     <SessionWorkspace
       sessionId={sessionId}
+      therapistId={therapistId}
       patientId={patientId}
       patientName={patientName}
       patientMemory={sessionPatientMemory}

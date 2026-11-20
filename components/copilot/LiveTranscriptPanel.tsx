@@ -25,6 +25,9 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
 }) => {
   const bottomAnchorRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isError = streamState === "error";
+  const isConnecting = streamState === "connecting" || streamState === "reconnecting";
+  const isListening = streamState === "listening" || streamState === "transcribing" || streamState === "connected";
   const effectivePaused = isPaused || streamState === "paused";
   const displayName = patientName || "Maria Zilda";
 
@@ -49,25 +52,55 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
       >
         {transcripts.length === 0 && !interimTranscript ? (
           <div className="flex h-full min-h-[360px] flex-col items-center justify-center text-center p-8 select-none">
-            {/* Animação suave de áudio */}
+            {/* Ícone contextual de acordo com o status real */}
             <div className="relative flex items-center justify-center mb-6">
-              <div className="absolute h-32 w-32 rounded-full bg-teal-50 border border-teal-100 animate-ping opacity-30" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-b from-teal-50 to-teal-100/70 border border-teal-200 text-teal-700 shadow-xs">
-                <svg className="h-8 w-8 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" d="M12 3v18M8 7v10M16 7v10M4 11v2M20 11v2" />
-                </svg>
+              {isListening && !effectivePaused && (
+                <div className="absolute h-32 w-32 rounded-full bg-teal-50 border border-teal-100 animate-ping opacity-30" />
+              )}
+              <div
+                className={`relative flex h-20 w-20 items-center justify-center rounded-full border shadow-xs ${
+                  isError
+                    ? "bg-rose-50 border-rose-200 text-rose-600"
+                    : isConnecting
+                    ? "bg-amber-50 border-amber-200 text-amber-600"
+                    : "bg-gradient-to-b from-teal-50 to-teal-100/70 border-teal-200 text-teal-700"
+                }`}
+              >
+                {isError ? (
+                  <svg className="h-8 w-8 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                ) : (
+                  <svg className="h-8 w-8 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" d="M12 3v18M8 7v10M16 7v10M4 11v2M20 11v2" />
+                  </svg>
+                )}
               </div>
             </div>
 
             <h3 className="text-base font-bold text-slate-800">
-              {effectivePaused ? "Sessão pausada" : "Escuta ativa iniciada..."}
+              {isError
+                ? "Microfone ou conexão indisponível"
+                : isConnecting
+                ? "Conectando ao serviço de áudio..."
+                : effectivePaused
+                ? "Sessão pausada"
+                : "Aguardando primeiras falas..."}
             </h3>
             <p className="text-xs text-slate-500 mt-1.5 max-w-sm leading-relaxed">
-              O áudio da conversa está sendo transcrito com privacidade e sigilo em tempo real. Converse naturalmente com o paciente.
+              {isError
+                ? "Verifique a permissão do microfone no navegador e certifique-se de que o Realtime Gateway está ativo."
+                : isConnecting
+                ? "Estabelecendo canal seguro WebSocket com o Gateway de áudio..."
+                : effectivePaused
+                ? "A captura de áudio está temporariamente suspensa. Clique em 'Retomar' para continuar."
+                : "O microfone está ativo. À medida que o terapeuta e o paciente conversarem, as falas aparecerão aqui em tempo real."}
             </p>
 
-            {/* Barras de som animadas */}
-            {!effectivePaused && (
+            {/* Barras de som animadas SOMENTE se a escuta estiver ativa de fato */}
+            {isListening && !effectivePaused && (
               <div className="flex items-center gap-1.5 mt-6 h-6">
                 {[8, 14, 22, 16, 10, 18, 12, 6, 14, 20, 10, 6].map((h, i) => (
                   <span

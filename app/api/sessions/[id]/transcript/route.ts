@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const createChunkSchema = z.object({
+  chunk_id: z.string().uuid().optional(),
   text: z.string().trim().min(1),
   speaker: z.string().trim().min(1).optional(),
   t_start_seconds: z.number().nonnegative().optional(),
@@ -118,15 +119,20 @@ export async function POST(
     }
 
     const supabase = createSupabaseAdminClient();
+    const insertPayload: Record<string, unknown> = {
+      session_id: sessionId,
+      text: parsed.data.text,
+      speaker: parsed.data.speaker ?? null,
+      t_start_seconds: parsed.data.t_start_seconds ?? null,
+      t_end_seconds: parsed.data.t_end_seconds ?? null,
+    };
+    if (parsed.data.chunk_id) {
+      insertPayload.id = parsed.data.chunk_id;
+    }
+
     const insertResult = await supabase
       .from("transcript_chunks")
-      .insert({
-        session_id: sessionId,
-        text: parsed.data.text,
-        speaker: parsed.data.speaker ?? null,
-        t_start_seconds: parsed.data.t_start_seconds ?? null,
-        t_end_seconds: parsed.data.t_end_seconds ?? null,
-      })
+      .upsert(insertPayload, { onConflict: "id" })
       .select(
         "id, session_id, text, speaker, t_start_seconds, t_end_seconds, created_at",
       )

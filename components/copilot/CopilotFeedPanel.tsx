@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import type { CopilotEventItem } from "./useCopilotStream";
+import type { CopilotEventItem, ConnectionState } from "./useCopilotStream";
 
 export interface CopilotFeedPanelProps {
   events: CopilotEventItem[];
   patientName?: string | null;
   patientMemory?: string | null;
   lastSessionDate?: string | null;
+  streamState?: ConnectionState;
   onDismiss?: (id: string) => void;
   onPin?: (id: string) => void;
   onOpenContextSection?: (section?: string) => void;
@@ -29,6 +30,7 @@ function formatTime(createdAt?: string | number): string {
 
 export const CopilotFeedPanel: React.FC<CopilotFeedPanelProps> = ({
   events = [],
+  streamState,
   onDismiss,
   onOpenContextSection,
   className = "",
@@ -54,6 +56,29 @@ export const CopilotFeedPanel: React.FC<CopilotFeedPanelProps> = ({
     onDismiss?.(id);
   };
 
+  const isError = streamState === "error";
+  const isConnecting = streamState === "connecting" || streamState === "reconnecting";
+  const isPaused = streamState === "paused";
+  const isListening = streamState === "listening" || streamState === "transcribing" || streamState === "connected";
+
+  const badgeText = isError
+    ? "Canal inativo"
+    : isConnecting
+    ? "Conectando..."
+    : isPaused
+    ? "Pausado"
+    : isListening
+    ? "Escuta ativa"
+    : "Aguardando";
+
+  const badgeDotClass = isError
+    ? "bg-rose-500"
+    : isConnecting || isPaused
+    ? "bg-amber-400"
+    : isListening
+    ? "bg-emerald-500 animate-pulse"
+    : "bg-slate-400";
+
   return (
     <div className={`flex h-full w-full min-w-0 flex-col bg-white overflow-hidden select-none ${className}`}>
       {/* 1. Header do Copiloto */}
@@ -75,14 +100,21 @@ export const CopilotFeedPanel: React.FC<CopilotFeedPanelProps> = ({
           </div>
         </div>
 
-        {/* Badge: Escuta Ativa */}
-        <div className="flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200/80 px-3 py-1 text-xs font-semibold text-teal-800 shadow-2xs">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Escuta ativa</span>
+        {/* Badge: Escuta Real */}
+        <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold shadow-2xs ${
+          isError
+            ? "bg-rose-50 border-rose-200 text-rose-700"
+            : isConnecting
+            ? "bg-amber-50 border-amber-200 text-amber-700"
+            : "bg-teal-50 border-teal-200/80 text-teal-800"
+        }`}>
+          <span className={`h-2 w-2 rounded-full ${badgeDotClass}`} />
+          <span>{badgeText}</span>
         </div>
       </div>
 
-      {/* Barra Suave de Visualização Sonora */}
+      {/* Barra Suave de Visualização Sonora - SOMENTE se houver escuta ativa funcional */}
+      {isListening && !isPaused && (
       <div className="flex items-center justify-center gap-1 py-2.5 bg-slate-50/50 border-b border-slate-100">
         {[6, 12, 18, 14, 8, 16, 20, 12, 6, 14, 16, 8].map((h, i) => (
           <span
@@ -96,6 +128,7 @@ export const CopilotFeedPanel: React.FC<CopilotFeedPanelProps> = ({
           />
         ))}
       </div>
+      )}
 
       {/* Feedback Toast */}
       {copiedToast && (
@@ -133,7 +166,6 @@ export const CopilotFeedPanel: React.FC<CopilotFeedPanelProps> = ({
               const isRecurrence = item.type === "RECORRENCIA";
               const isConnection = item.type === "CONEXAO";
               const isRisk = item.type === "POTENTIAL_RISK" || item.urgency === "high";
-              const isSuggestion = item.type === "EXPLORAR" || Boolean(item.suggestedAction);
 
               if (isRisk) {
                 return (

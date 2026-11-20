@@ -110,6 +110,7 @@ export function LiveSessionView({
               patientName={patientName}
               patientMemory={patientMemory}
               lastSessionDate={lastSessionDate}
+              streamState={streamState}
               onDismiss={onDismissEvent}
               onOpenContextSection={() => setContextDrawerOpen(true)}
             />
