@@ -49,16 +49,16 @@ function getInitials(name: string): string {
 
 export function RecentPatientsList({ patients }: RecentPatientsListProps) {
   return (
-    <Card className="rounded-[18px] border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 p-5 pb-3.5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#087A68]">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <Card className="rounded-[18px] border border-[#E4EBE8] bg-[#FFFFFF] shadow-[0_5px_18px_rgba(30,65,55,0.08)] overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-[#E4EBE8]/60 p-6 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-[#087A68]">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-[#123D35]">
+            <CardTitle className="text-lg font-bold text-[#123D35]">
               Pacientes Recentes
             </CardTitle>
           </div>
@@ -73,7 +73,7 @@ export function RecentPatientsList({ patients }: RecentPatientsListProps) {
         </Link>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-2">
+      <CardContent className="p-6 space-y-2">
         {patients.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <p className="text-xs text-[#5C7870]">

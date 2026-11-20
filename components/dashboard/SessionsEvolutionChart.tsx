@@ -33,16 +33,16 @@ export function SessionsEvolutionChart({ data }: SessionsEvolutionChartProps) {
   );
 
   return (
-    <Card className="rounded-[18px] border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
-      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 p-5 pb-3.5">
+    <Card className="rounded-[18px] border border-[#E4EBE8] bg-[#FFFFFF] shadow-[0_5px_18px_rgba(30,65,55,0.08)] overflow-hidden">
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-[#E4EBE8]/60 p-6 pb-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#087A68]">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-[#087A68]">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
               </svg>
             </div>
-            <CardTitle className="text-base font-bold text-[#123D35]">
+            <CardTitle className="text-lg font-bold text-[#123D35]">
               Evolução dos Atendimentos
             </CardTitle>
           </div>

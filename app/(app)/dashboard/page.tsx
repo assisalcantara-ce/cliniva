@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeuDiaResponse } from "@/lib/db/dashboard";
+import { AppTopbar } from "@/components/layout/AppTopbar";
 import {
   TodayScheduleTimeline,
   MeuDiaEmptyState,
@@ -135,7 +136,7 @@ export default function DashboardPage() {
     >
       <div className="mx-auto max-w-[1330px] px-6 sm:px-8 pt-7 pb-14 space-y-6">
         {/* Cabeçalho Clínico Acolhedor exatamente como no Mockup Aprovado */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between min-h-[64px]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-1">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100/70 text-[#087A68] border border-emerald-200/60 shadow-xs shrink-0">
               <svg
@@ -162,7 +163,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={fetchData}
@@ -183,6 +184,11 @@ export default function DashboardPage() {
               </svg>
               Atualizar
             </button>
+
+            {/* Controles de Topbar alinhados à direita sobre o background */}
+            <div className="hidden md:flex items-center">
+              <AppTopbar aiMode="openai" />
+            </div>
           </div>
         </div>
 

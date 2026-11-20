@@ -40,17 +40,17 @@ function formatPatientName(name: string): string {
 
 export function PendingActivities({ pendingSessions }: PendingActivitiesProps) {
   return (
-    <Card className="rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 p-5 pb-3.5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#205F52]">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <Card className="rounded-[18px] border border-[#E4EBE8] bg-[#FFFFFF] shadow-[0_5px_18px_rgba(30,65,55,0.08)] overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-[#E4EBE8]/60 p-6 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-[#087A68]">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
             </svg>
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-[#25463E]">
+            <CardTitle className="text-lg font-bold text-[#123D35]">
               Atividades Pendentes
             </CardTitle>
           </div>
@@ -63,7 +63,7 @@ export function PendingActivities({ pendingSessions }: PendingActivitiesProps) {
         )}
       </CardHeader>
 
-      <CardContent className="p-4 space-y-2.5">
+      <CardContent className="p-6 space-y-3">
         {pendingSessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2 border border-emerald-100">

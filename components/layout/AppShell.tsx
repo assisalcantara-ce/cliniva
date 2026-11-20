@@ -113,11 +113,26 @@ export function AppShell({
 
       <div
         className={cn(
-          "flex min-h-screen flex-col transition-[padding] duration-300 ease-in-out",
+          "flex min-h-screen flex-col transition-[padding] duration-300 ease-in-out relative",
           isCollapsed ? "md:pl-[76px]" : "md:pl-[260px]"
         )}
       >
-        <AppTopbar aiMode={aiMode} onOpenSidebar={() => setSidebarOpen(true)} />
+        {/* Topbar Flutuante Transparente: apenas botão mobile quando recolhido */}
+        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between p-4 bg-white/80 backdrop-blur-xs border-b border-slate-200">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-[#25463E] shadow-2xs cursor-pointer"
+            aria-label="Abrir menu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h16" />
+            </svg>
+          </button>
+          <AppTopbar aiMode={aiMode} />
+        </div>
 
         <main className="w-full flex-1">{children}</main>
       </div>
