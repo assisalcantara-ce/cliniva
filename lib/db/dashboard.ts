@@ -69,15 +69,44 @@ export const MeuDiaSummarySchema = z.object({
   pendingPostSessionCount: z.number().int().nonnegative(),
 });
 
+export const DashboardMetricsSchema = z.object({
+  activePatientsCount: z.number().int().nonnegative(),
+  monthSessionsCompleted: z.number().int().nonnegative(),
+  monthSessionsTotal: z.number().int().nonnegative(),
+  monthAppointmentsCount: z.number().int().nonnegative(),
+  pendingSessionsCount: z.number().int().nonnegative(),
+});
+
+export const DashboardWeeklyItemSchema = z.object({
+  weekLabel: z.string(),
+  startDate: z.string(),
+  completedSessions: z.number().int().nonnegative(),
+  totalSessions: z.number().int().nonnegative(),
+});
+
+export const DashboardRecentPatientSchema = z.object({
+  id: z.string(),
+  fullName: z.string(),
+  isActive: z.boolean(),
+  lastSessionDate: z.string().nullable(),
+  lastSessionId: z.string().nullable(),
+});
+
 export const MeuDiaResponseSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   timezone: z.literal(DEFAULT_DASHBOARD_TIMEZONE),
   summary: MeuDiaSummarySchema,
+  metrics: DashboardMetricsSchema.optional(),
+  weeklyEvolution: z.array(DashboardWeeklyItemSchema).optional(),
+  recentPatients: z.array(DashboardRecentPatientSchema).optional(),
   nextAppointment: MeuDiaNextAppointmentSchema.nullable(),
   todaySchedule: z.array(MeuDiaScheduleItemSchema),
   pendingPostSessions: z.array(MeuDiaPendingPostSessionSchema),
 });
 
+export type DashboardMetrics = z.infer<typeof DashboardMetricsSchema>;
+export type DashboardWeeklyItem = z.infer<typeof DashboardWeeklyItemSchema>;
+export type DashboardRecentPatient = z.infer<typeof DashboardRecentPatientSchema>;
 export type MeuDiaResponse = z.infer<typeof MeuDiaResponseSchema>;
 export type MeuDiaNextAppointment = z.infer<typeof MeuDiaNextAppointmentSchema>;
 export type MeuDiaScheduleItem = z.infer<typeof MeuDiaScheduleItemSchema>;
@@ -437,7 +466,103 @@ export async function getMeuDiaDashboardData(
     };
   }
 
-  // 8. Métricas Resumidas
+  // 8. Métricas Globais da Prática Clínica (Active Patients, Month Sessions, Weekly Evolution, Recent Patients)
+  // A) Total de pacientes ativos
+  const activePatientsRes = await client
+    .from("patients")
+    .select("*", { count: "exact", head: true })
+    .eq("therapist_id", therapistId)
+    .eq("is_active", true);
+  const activePatientsCount = activePatientsRes.count ?? 0;
+
+  // B) Sessões e agendamentos do mês corrente (fuso local)
+  const [currentYear, currentMonth] = todayDateStr.split("-").map(Number);
+  const startOfMonthIso = new Date(`${currentYear}-${String(currentMonth).padStart(2, "0")}-01T00:00:00-03:00`).toISOString();
+
+  const monthSessionsRes = await client
+    .from("sessions")
+    .select("id, ended_at, created_at")
+    .eq("therapist_id", therapistId)
+    .gte("created_at", startOfMonthIso);
+  const rawMonthSessions = monthSessionsRes.data ?? [];
+  const monthSessionsTotal = rawMonthSessions.length;
+  const monthSessionsCompleted = rawMonthSessions.filter((s) => Boolean(s.ended_at)).length;
+
+  const monthApptsRes = await client
+    .from("appointments")
+    .select("id, status")
+    .eq("therapist_id", therapistId)
+    .gte("scheduled_start", startOfMonthIso);
+  const monthAppointmentsCount = (monthApptsRes.data ?? []).length;
+
+  // C) Evolução semanal das últimas 6 semanas
+  const sixWeeksAgoDate = new Date(referenceDate.getTime() - 42 * 24 * 60 * 60 * 1000);
+  const sixWeeksAgoIso = sixWeeksAgoDate.toISOString();
+
+  const weeklySessionsRes = await client
+    .from("sessions")
+    .select("id, created_at, ended_at")
+    .eq("therapist_id", therapistId)
+    .gte("created_at", sixWeeksAgoIso)
+    .order("created_at", { ascending: true });
+  const rawWeeklySessions = weeklySessionsRes.data ?? [];
+
+  // Agrupar em fatias de 7 dias retroativas (últimas 6 semanas)
+  const weeklyEvolution: DashboardWeeklyItem[] = [];
+  for (let w = 5; w >= 0; w--) {
+    const wStart = new Date(referenceDate.getTime() - (w + 1) * 7 * 24 * 60 * 60 * 1000);
+    const wEnd = new Date(referenceDate.getTime() - w * 7 * 24 * 60 * 60 * 1000);
+    const wStartMs = wStart.getTime();
+    const wEndMs = wEnd.getTime();
+
+    const inWeek = rawWeeklySessions.filter((s) => {
+      const ms = new Date(s.created_at).getTime();
+      return ms >= wStartMs && ms < wEndMs;
+    });
+
+    const dayLabel = wStart.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", timeZone: "America/Sao_Paulo" });
+    weeklyEvolution.push({
+      weekLabel: `Sem ${6 - w} (${dayLabel})`,
+      startDate: wStart.toISOString(),
+      completedSessions: inWeek.filter((s) => Boolean(s.ended_at)).length,
+      totalSessions: inWeek.length,
+    });
+  }
+
+  // D) Pacientes recentes com data do último atendimento
+  const recentPatientsRes = await client
+    .from("patients")
+    .select(`
+      id,
+      full_name,
+      is_active,
+      created_at,
+      sessions (
+        id,
+        created_at,
+        ended_at
+      )
+    `)
+    .eq("therapist_id", therapistId)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const rawRecentPatients = recentPatientsRes.data ?? [];
+  const recentPatients: DashboardRecentPatient[] = rawRecentPatients.map((p) => {
+    const sessList = Array.isArray(p.sessions) ? [...p.sessions] : [];
+    sessList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const lastSess = sessList[0];
+
+    return {
+      id: p.id,
+      fullName: typeof p.full_name === "string" ? p.full_name : "Paciente",
+      isActive: Boolean(p.is_active),
+      lastSessionDate: lastSess?.created_at ?? null,
+      lastSessionId: lastSess?.id ?? null,
+    };
+  });
+
+  // 9. Métricas Resumidas
   const totalAppointmentsToday = todaySchedule.length;
   const confirmedCount = todaySchedule.filter((a) => a.status === "confirmed").length;
   const requestedCount = todaySchedule.filter((a) => a.status === "requested").length;
@@ -457,6 +582,15 @@ export async function getMeuDiaDashboardData(
       upcomingCount,
       pendingPostSessionCount: pendingPostSessions.length,
     },
+    metrics: {
+      activePatientsCount,
+      monthSessionsCompleted,
+      monthSessionsTotal,
+      monthAppointmentsCount,
+      pendingSessionsCount: pendingPostSessions.length,
+    },
+    weeklyEvolution,
+    recentPatients,
     nextAppointment,
     todaySchedule,
     pendingPostSessions,

@@ -54,8 +54,11 @@ function createMockSupabaseClient(store: {
         order() {
           return queryBuilder;
         },
-        async then(resolve: (res: { data: unknown[]; error: null }) => void) {
-          resolve({ data, error: null });
+        limit() {
+          return queryBuilder;
+        },
+        async then(resolve: (res: { data: unknown[]; error: null; count?: number }) => void) {
+          resolve({ data, error: null, count: data.length });
         },
       };
 

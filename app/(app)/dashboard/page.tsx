@@ -11,6 +11,10 @@ import {
   MeuDiaEmptyState,
   MeuDiaSkeleton,
   MeuDiaErrorState,
+  DashboardMetricCards,
+  SessionsEvolutionChart,
+  RecentPatientsList,
+  PendingActivities,
 } from "@/components/dashboard";
 
 function getGreeting(): string {
@@ -122,8 +126,6 @@ export default function DashboardPage() {
 
   const formattedDate = formatDisplayDate(data.date);
   const greeting = getGreeting();
-  const isCompletelyEmpty =
-    data.todaySchedule.length === 0 && data.pendingPostSessions.length === 0;
 
   return (
     <div className="patients-page space-y-6 pb-12">
@@ -186,45 +188,58 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {isCompletelyEmpty ? (
-        <MeuDiaEmptyState dateLabel={formattedDate} />
-      ) : (
-        <div className="space-y-6">
-          {/* Hero: Próximo Atendimento Iminente */}
-          {data.nextAppointment ? (
-            <NextAppointmentCard
-              appointment={data.nextAppointment}
+      {/* 1. Indicadores Reais da Prática Clínica (4 Cards) */}
+      <DashboardMetricCards
+        metrics={data.metrics}
+        nextAppointment={data.nextAppointment}
+      />
+
+      {/* 2. Próximo Atendimento Iminente (se houver agendamento próximo) */}
+      {data.nextAppointment ? (
+        <NextAppointmentCard
+          appointment={data.nextAppointment}
+          onStartSession={handleStartSession}
+        />
+      ) : null}
+
+      {/* 3. Grid Principal: Agenda de Hoje + Apoio Clínico */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
+          {data.todaySchedule.length > 0 ? (
+            <TodayScheduleTimeline
+              schedule={data.todaySchedule}
               onStartSession={handleStartSession}
             />
-          ) : null}
-
-          {/* Grid Principal: Timeline de Hoje (2 cols) + Apoio Clínico & Pendências (1 col) */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-              {data.todaySchedule.length > 0 ? (
-                <TodayScheduleTimeline
-                  schedule={data.todaySchedule}
-                  onStartSession={handleStartSession}
-                />
-              ) : (
-                <MeuDiaEmptyState dateLabel={formattedDate} />
-              )}
-            </div>
-
-            <div className="lg:col-span-1 space-y-6">
-              {/* Alertas e Sinais de Atenção */}
-              <ClinicalDayAlerts nextAppointment={data.nextAppointment} />
-
-              {/* Pendências de Fechamento Pós-Sessão */}
-              {data.pendingPostSessions.length > 0 ? (
-                <PostSessionPendencies
-                  pendingSessions={data.pendingPostSessions}
-                />
-              ) : null}
-            </div>
-          </div>
+          ) : (
+            <MeuDiaEmptyState dateLabel={formattedDate} />
+          )}
         </div>
-      )}
+
+        <div className="lg:col-span-1 space-y-6">
+          {/* Alertas e Sinais de Atenção */}
+          <ClinicalDayAlerts nextAppointment={data.nextAppointment} />
+
+          {/* Pendências de Fechamento Pós-Sessão compactas */}
+          {data.pendingPostSessions.length > 0 ? (
+            <PostSessionPendencies
+              pendingSessions={data.pendingPostSessions}
+            />
+          ) : null}
+        </div>
+      </div>
+
+      {/* 4. Seção Atividades Pendentes Detalhadas */}
+      <PendingActivities pendingSessions={data.pendingPostSessions} />
+
+      {/* 5. Grid Inferior: Evolução dos Atendimentos (Gráfico Recharts) + Pacientes Recentes */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <SessionsEvolutionChart data={data.weeklyEvolution ?? []} />
+        </div>
+        <div className="lg:col-span-1">
+          <RecentPatientsList patients={data.recentPatients ?? []} />
+        </div>
+      </div>
     </div>
   );
 }

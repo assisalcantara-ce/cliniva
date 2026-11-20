@@ -8,3 +8,7 @@ export * from "./MeuDiaErrorState";
 export * from "./StatCard";
 export * from "./ChartCard";
 export * from "./DonutCard";
+export * from "./DashboardMetricCards";
+export * from "./SessionsEvolutionChart";
+export * from "./RecentPatientsList";
+export * from "./PendingActivities";

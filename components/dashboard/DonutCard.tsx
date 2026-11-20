@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Pie,
@@ -9,6 +9,8 @@ import {
   Cell,
   Tooltip,
 } from "recharts";
+
+const emptySubscribe = () => () => {};
 
 export function DonutCard({
   title,
@@ -19,8 +21,11 @@ export function DonutCard({
   value: number; // 0..100
   label: string;
 }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   const v = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
   const data = [
