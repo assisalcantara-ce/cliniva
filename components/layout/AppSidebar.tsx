@@ -22,37 +22,25 @@ type NavItem = {
 function ClinivaBrandLogo({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <div className={cn("flex items-center gap-3 select-none", collapsed ? "justify-center" : "")}>
-      {/* Símbolo do Cérebro / Perfil Inteligente */}
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 via-cyan-500/15 to-transparent border border-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-        <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-cyan-400" stroke="currentColor" strokeWidth="1.75">
-          {/* Perfil Humano / Cabeça */}
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8.5 19C8.5 16.5 10 15 11 14C10 13 9.5 11.5 10 9.5C10.8 6.5 13 5 16.5 5.5C19.5 6 20.5 8.5 20.5 11C20.5 13.5 19 15 18 16V17.5C18 18.5 17 19.5 16 20L15 20.5H10.5C9.5 20.5 8.5 19.8 8.5 19Z"
-          />
-          {/* Conexões Neurais e Ponto de Diálogo */}
-          <circle cx="14" cy="9.5" r="1" fill="#00D2C4" stroke="none" />
-          <circle cx="17" cy="9" r="1" fill="#00D2C4" stroke="none" />
-          <circle cx="16" cy="12" r="1" fill="#00D2C4" stroke="none" />
-          <path d="M14 9.5L17 9M17 9L16 12M14 9.5L16 12" stroke="#00D2C4" strokeWidth="1" strokeLinecap="round" />
+      {/* Símbolo Cliniva Folha / Bem-estar Clínico */}
+      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white border border-white/20 shadow-xs">
+        <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-white" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" className="hidden" />
+          <path d="M11 20A7 7 0 0 1 4 13C4 9.13 7.13 6 11 6c4.97 0 9 4.03 9 9 0 2.12-.74 4.07-1.97 5.61" />
+          <path d="M12 10a4 4 0 0 0-4 4c0 1.66 1.01 3.08 2.45 3.68" />
+          <path d="M21 3v6h-6" />
         </svg>
       </div>
 
       {!collapsed && (
         <div className="min-w-0 flex-1 animate-in fade-in duration-200">
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-extrabold tracking-tight text-white font-sans">
+            <span className="text-xl font-bold tracking-tight text-white font-sans">
               Cliniva
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase">
-              — COPILOT —
-            </span>
-          </div>
-          <p className="text-[10px] text-slate-400/90 leading-none mt-1">
-            <span className="font-semibold text-cyan-300">IA que apoia.</span> Você que lidera.
+          <p className="text-[11px] font-medium text-emerald-100/90 leading-tight">
+            Copilot Clínico
           </p>
         </div>
       )}
@@ -129,22 +117,6 @@ function SettingsIcon({ className = "h-5 w-5", active }: { className?: string; a
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2" : "1.75"} className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
       <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CrownIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V18H19V19Z" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
     </svg>
   );
 }
@@ -231,7 +203,7 @@ export function AppSidebar({
   const mainNavItems: NavItem[] = [
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: "Meu Consultório",
       subtitle: "Visão geral da sua prática",
       match: "exact",
       icon: HomeIcon,
@@ -245,28 +217,28 @@ export function AppSidebar({
     },
     {
       href: "/sessions",
-      label: "Sessões",
+      label: "Atendimentos",
       subtitle: "Atendimentos e histórico",
       match: "prefix",
       icon: SessionsIcon,
     },
     {
       href: "/appointments",
-      label: "Agendamentos",
+      label: "Agenda",
       subtitle: "Sua agenda e compromissos",
       match: "prefix",
       icon: AppointmentsIcon,
     },
     {
       href: "/materials",
-      label: "Materiais",
+      label: "Materiais e Recursos",
       subtitle: "Recursos e documentos",
       match: "prefix",
       icon: MaterialsIcon,
     },
     {
       href: "/support",
-      label: "Suporte",
+      label: "Relatórios",
       subtitle: "Ajuda e atendimento",
       match: "prefix",
       icon: SupportIcon,
@@ -313,37 +285,42 @@ export function AppSidebar({
         )}
       />
 
-      {/* Sidebar Principal (Design Dark Navy Sofisticado & Flutuante) */}
+      {/* Sidebar Principal (Design Consultório Acolhedor / Mockup Aprovado) */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#081726] text-white border-r border-[#132D42]",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#F7F2EB] text-[#25463E] border-r border-[#E5DEC9]",
           "transition-all duration-300 ease-in-out select-none shadow-2xl md:shadow-none",
-          // Largura responsiva (compacto vs expandido)
-          collapsed ? "w-[80px]" : "w-[280px]",
+          // Largura responsiva (compacto 76px vs expandido 256px)
+          collapsed ? "w-[76px]" : "w-[256px]",
           // Visibilidade Mobile vs Desktop
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        {/* Ambient Glow Background Pattern */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
-          <div className="absolute top-1/2 -right-24 h-64 w-64 rounded-full bg-teal-500/15 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-blue-600/15 blur-3xl" />
-        </div>
+        {/* Imagem de Fundo Decorativa (bg_lateral.png: poltrona, planta e luminária na base) */}
+        <div
+          className="absolute inset-0 pointer-events-none z-0 bg-no-repeat bg-bottom bg-cover opacity-85"
+          style={{
+            backgroundImage: "url('/img/bg_lateral.png')",
+            backgroundPosition: "center bottom",
+          }}
+        />
 
-        {/* 1. Header do Sidebar (Logo + Botão de Recolher/Expandir) */}
+        {/* Overlay sutil para garantir legibilidade absoluta dos itens de navegação */}
+        <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-[#F7F2EB] via-[#F7F2EB]/95 to-transparent h-[450px]" />
+
+        {/* 1. Header do Sidebar (Bloco Verde da Marca + Botão de Recolher/Expandir) */}
         <div
           className={cn(
-            "relative z-10 border-b border-white/[0.07] shrink-0 transition-all duration-300",
+            "relative z-10 shrink-0 transition-all duration-300 bg-[#205F52] text-white shadow-sm",
             collapsed
-              ? "flex flex-col items-center gap-3 px-2 py-4 justify-center"
-              : "flex items-center justify-between px-5 py-5"
+              ? "flex flex-col items-center gap-2 px-2 py-4 justify-center min-h-[80px]"
+              : "flex items-center justify-between px-5 py-4 min-h-[88px]"
           )}
         >
           <Link
             href="/dashboard"
             onClick={() => onClose?.()}
-            className="flex items-center gap-3 transition-opacity hover:opacity-90"
+            className="flex items-center gap-3 transition-opacity hover:opacity-95"
           >
             <ClinivaBrandLogo collapsed={collapsed} />
           </Link>
@@ -355,20 +332,20 @@ export function AppSidebar({
             title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
             aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
             className={cn(
-              "hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.05] border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer shadow-2xs",
-              collapsed ? "w-7 h-7" : ""
+              "hidden md:flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer",
+              collapsed ? "h-7 w-7 mt-1" : ""
             )}
           >
             {collapsed ? (
-              <ChevronsRightIcon className="h-4 w-4 text-cyan-400" />
+              <ChevronsRightIcon className="h-4 w-4 text-emerald-200" />
             ) : (
-              <ChevronsLeftIcon className="h-4 w-4" />
+              <ChevronsLeftIcon className="h-4 w-4 text-white" />
             )}
           </button>
         </div>
 
         {/* 2. Área de Navegação com Scroll Discreto */}
-        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-4 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 pb-2 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Seção Principal */}
           <nav className="space-y-1.5" aria-label="Navegação principal">
             {mainNavItems.map((item) => {
@@ -381,22 +358,22 @@ export function AppSidebar({
                     href={item.href}
                     onClick={() => onClose?.()}
                     className={cn(
-                      "relative flex items-center rounded-xl transition-all duration-200",
+                      "relative flex items-center rounded-xl transition-all duration-200 text-sm font-semibold",
                       collapsed
-                        ? "justify-center p-3 h-12 w-12 mx-auto"
-                        : "gap-3 px-3.5 py-2.5 w-full",
+                        ? "justify-center p-2.5 h-11 w-11 mx-auto"
+                        : "gap-3 px-3.5 py-2.5 w-full min-h-[44px]",
                       active
-                        ? "bg-gradient-to-r from-[#0E354B] to-[#0A2638] border border-cyan-500/40 text-white shadow-[0_0_15px_rgba(6,182,212,0.12)] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3.5px] before:rounded-r-full before:bg-cyan-400 before:shadow-[0_0_10px_#06b6d4]"
-                        : "text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                        ? "bg-[#D9EEE2] text-[#205F52] shadow-xs border-l-[3px] border-[#2C927B]"
+                        : "text-[#355D54] hover:text-[#205F52] hover:bg-[#EAF5ED]/90"
                     )}
                   >
                     {/* Ícone com Container Suave */}
                     <div
                       className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
                         active
-                          ? "bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-400/40"
-                          : "bg-white/[0.04] text-slate-400 group-hover:text-white group-hover:bg-white/[0.08]"
+                          ? "text-[#205F52]"
+                          : "text-[#355D54] group-hover:text-[#205F52]"
                       )}
                     >
                       <IconComponent active={active} className="h-4 w-4" />
@@ -405,38 +382,17 @@ export function AppSidebar({
                     {/* Texto (Expandido) */}
                     {!collapsed && (
                       <div className="min-w-0 flex-1 flex items-center justify-between gap-1">
-                        <div className="min-w-0">
-                          <span
-                            className={cn(
-                              "block text-xs font-semibold leading-tight truncate",
-                              active ? "text-white" : "text-slate-200 group-hover:text-white"
-                            )}
-                          >
-                            {item.label}
-                          </span>
-                          <span
-                            className={cn(
-                              "block text-[10px] leading-tight truncate mt-0.5",
-                              active ? "text-cyan-200/70" : "text-slate-400/70 group-hover:text-slate-300"
-                            )}
-                          >
-                            {item.subtitle}
-                          </span>
-                        </div>
+                        <span className="block text-[13px] font-semibold leading-tight truncate">
+                          {item.label}
+                        </span>
 
                         {/* Chevron ou Badge */}
                         <div className="flex items-center gap-1.5 shrink-0 pl-1">
                           {item.badge && (
-                            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500/90 px-1.5 text-[10px] font-bold text-white shadow-xs">
+                            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white shadow-xs">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRightIcon
-                            className={cn(
-                              "h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5",
-                              active ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
-                            )}
-                          />
                         </div>
                       </div>
                     )}
@@ -445,11 +401,8 @@ export function AppSidebar({
                   {/* Tooltip para Estado Compacto */}
                   {collapsed && (
                     <div className="pointer-events-none absolute left-[76px] top-1/2 -translate-y-1/2 z-50 hidden md:group-hover:flex items-center">
-                      <div className="rounded-lg bg-[#0D2438] border border-cyan-500/30 px-3 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap">
+                      <div className="rounded-lg bg-[#205F52] text-white px-3 py-1.5 text-xs font-semibold shadow-xl whitespace-nowrap">
                         {item.label}
-                        <span className="block text-[10px] text-slate-400 font-normal">
-                          {item.subtitle}
-                        </span>
                       </div>
                     </div>
                   )}
@@ -458,16 +411,8 @@ export function AppSidebar({
             })}
           </nav>
 
-          {/* Seção Secundária (Configuração) */}
-          <div className="pt-2 border-t border-white/[0.07] space-y-1.5">
-            {!collapsed && (
-              <div className="px-3 py-1">
-                <span className="text-[10px] font-bold tracking-widest text-slate-400/70 uppercase">
-                  Configuração
-                </span>
-              </div>
-            )}
-
+          {/* Seção Secundária (Configurações) */}
+          <div className="pt-2 border-t border-[#E5DEC9]/80 space-y-1.5">
             {configNavItems.map((item) => {
               const active = isItemActive(pathname, item);
               const IconComponent = item.icon;
@@ -478,21 +423,21 @@ export function AppSidebar({
                     href={item.href}
                     onClick={() => onClose?.()}
                     className={cn(
-                      "relative flex items-center rounded-xl transition-all duration-200",
+                      "relative flex items-center rounded-xl transition-all duration-200 text-sm font-semibold",
                       collapsed
-                        ? "justify-center p-3 h-12 w-12 mx-auto"
-                        : "gap-3 px-3.5 py-2.5 w-full",
+                        ? "justify-center p-2.5 h-11 w-11 mx-auto"
+                        : "gap-3 px-3.5 py-2.5 w-full min-h-[44px]",
                       active
-                        ? "bg-gradient-to-r from-[#0E354B] to-[#0A2638] border border-cyan-500/40 text-white shadow-[0_0_15px_rgba(6,182,212,0.12)] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3.5px] before:rounded-r-full before:bg-cyan-400 before:shadow-[0_0_10px_#06b6d4]"
-                        : "text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                        ? "bg-[#D9EEE2] text-[#205F52] shadow-xs border-l-[3px] border-[#2C927B]"
+                        : "text-[#355D54] hover:text-[#205F52] hover:bg-[#EAF5ED]/90"
                     )}
                   >
                     <div
                       className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
                         active
-                          ? "bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-400/40"
-                          : "bg-white/[0.04] text-slate-400 group-hover:text-white group-hover:bg-white/[0.08]"
+                          ? "text-[#205F52]"
+                          : "text-[#355D54] group-hover:text-[#205F52]"
                       )}
                     >
                       <IconComponent active={active} className="h-4 w-4" />
@@ -500,42 +445,17 @@ export function AppSidebar({
 
                     {!collapsed && (
                       <div className="min-w-0 flex-1 flex items-center justify-between gap-1">
-                        <div className="min-w-0">
-                          <span
-                            className={cn(
-                              "block text-xs font-semibold leading-tight truncate",
-                              active ? "text-white" : "text-slate-200 group-hover:text-white"
-                            )}
-                          >
-                            {item.label}
-                          </span>
-                          <span
-                            className={cn(
-                              "block text-[10px] leading-tight truncate mt-0.5",
-                              active ? "text-cyan-200/70" : "text-slate-400/70 group-hover:text-slate-300"
-                            )}
-                          >
-                            {item.subtitle}
-                          </span>
-                        </div>
-
-                        <ChevronRightIcon
-                          className={cn(
-                            "h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5",
-                            active ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
-                          )}
-                        />
+                        <span className="block text-[13px] font-semibold leading-tight truncate">
+                          {item.label}
+                        </span>
                       </div>
                     )}
                   </Link>
 
                   {collapsed && (
                     <div className="pointer-events-none absolute left-[76px] top-1/2 -translate-y-1/2 z-50 hidden md:group-hover:flex items-center">
-                      <div className="rounded-lg bg-[#0D2438] border border-cyan-500/30 px-3 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap">
+                      <div className="rounded-lg bg-[#205F52] text-white px-3 py-1.5 text-xs font-semibold shadow-xl whitespace-nowrap">
                         {item.label}
-                        <span className="block text-[10px] text-slate-400 font-normal">
-                          {item.subtitle}
-                        </span>
                       </div>
                     </div>
                   )}
@@ -545,61 +465,19 @@ export function AppSidebar({
           </div>
         </div>
 
-        {/* 3. Área Inferior (Cliniva Premium + Perfil do Terapeuta) */}
+        {/* 3. Área Inferior (Perfil do Terapeuta com visual translúcido sofisticado) */}
         <div
           className={cn(
-            "relative z-10 border-t border-white/[0.07] space-y-3 bg-[#07131F]/70 shrink-0 transition-all duration-300",
-            collapsed ? "p-2.5" : "p-3.5"
+            "relative z-10 shrink-0 transition-all duration-300 mt-auto",
+            collapsed ? "p-2" : "p-3"
           )}
         >
-          {/* Card Cliniva Premium */}
-          {collapsed ? (
-            <div className="relative group flex justify-center">
-              <Link
-                href="/planos"
-                onClick={() => onClose?.()}
-                className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-600/10 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/25 transition-all shadow-sm"
-              >
-                <CrownIcon className="h-5 w-5 text-cyan-300" />
-              </Link>
-              <div className="pointer-events-none absolute left-[76px] top-1/2 -translate-y-1/2 z-50 hidden md:group-hover:flex items-center">
-                <div className="rounded-lg bg-[#0D2438] border border-cyan-500/30 px-3 py-1.5 text-xs font-semibold text-cyan-300 shadow-xl whitespace-nowrap">
-                  Cliniva Premium
-                  <span className="block text-[10px] text-slate-400 font-normal">
-                    Recursos avançados ativos
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <Link
-              href="/planos"
-              onClick={() => onClose?.()}
-              className="flex items-center justify-between gap-3 p-3 rounded-xl bg-gradient-to-br from-[#0B2A3B] to-[#071E2B] border border-cyan-500/25 hover:border-cyan-500/45 transition-all shadow-sm group"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-2xs">
-                  <CrownIcon className="h-4 w-4 text-cyan-300" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-xs font-bold text-cyan-300 leading-tight">
-                    Cliniva Premium
-                  </span>
-                  <span className="block text-[10px] text-slate-400/85 leading-tight truncate mt-0.5">
-                    Mais recursos para sua prática
-                  </span>
-                </div>
-              </div>
-              <ChevronRightIcon className="h-4 w-4 text-cyan-500/60 group-hover:text-cyan-300 group-hover:translate-x-0.5 transition-all shrink-0" />
-            </Link>
-          )}
-
           {/* Card do Perfil do Terapeuta */}
           {collapsed ? (
             <div className="flex flex-col items-center gap-2">
               <div
                 title={userName}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-100 to-white text-[#0B1E2E] font-bold text-xs ring-2 ring-cyan-500/30 shadow-xs cursor-default"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#205F52] text-white font-bold text-xs ring-2 ring-emerald-500/30 shadow-xs cursor-default"
               >
                 {userInitials}
               </div>
@@ -608,27 +486,27 @@ export function AppSidebar({
                 onClick={handleLogout}
                 title="Sair da conta"
                 aria-label="Sair da conta"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 transition-colors"
               >
-                <LogOutIcon className="h-4 w-4" />
+                <LogOutIcon className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
-            <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] overflow-hidden transition-all">
+            <div className="rounded-xl bg-white/80 backdrop-blur-xs border border-white/90 shadow-sm overflow-hidden">
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex w-full items-center justify-between p-2.5 text-left hover:bg-white/[0.04] transition-colors cursor-pointer"
+                className="flex w-full items-center justify-between p-2.5 text-left hover:bg-white/90 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-100 to-white text-[#0B1E2E] font-bold text-xs ring-2 ring-cyan-500/30 shadow-xs">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#205F52] text-white font-bold text-xs shadow-xs">
                     {userInitials}
                   </div>
                   <div className="min-w-0">
-                    <span className="block text-xs font-bold text-white truncate leading-tight">
+                    <span className="block text-xs font-bold text-[#25463E] truncate leading-tight">
                       {userName}
                     </span>
-                    <span className="block text-[10px] text-slate-400 truncate leading-tight mt-0.5">
+                    <span className="block text-[10px] text-[#5C7870] truncate leading-tight mt-0.5">
                       Psicóloga Clínica
                     </span>
                   </div>
@@ -636,41 +514,41 @@ export function AppSidebar({
 
                 <ChevronDownIcon
                   className={cn(
-                    "h-4 w-4 text-slate-400 transition-transform duration-200 shrink-0",
-                    profileMenuOpen ? "rotate-180 text-white" : ""
+                    "h-3.5 w-3.5 text-[#5C7870] transition-transform duration-200 shrink-0",
+                    profileMenuOpen ? "rotate-180 text-[#25463E]" : ""
                   )}
                 />
               </button>
 
               {/* Menu Acordeon do Perfil */}
               {profileMenuOpen && (
-                <div className="border-t border-white/[0.08] p-2 space-y-1 bg-black/20 animate-in fade-in duration-150 text-xs">
+                <div className="border-t border-[#E5DEC9]/80 p-2 space-y-1 bg-white/95 animate-in fade-in duration-150 text-xs">
                   <Link
                     href="/settings"
                     onClick={() => onClose?.()}
-                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[#355D54] hover:text-[#205F52] hover:bg-[#EAF5ED] transition-colors"
                   >
-                    <UserIcon className="h-3.5 w-3.5 text-slate-400" />
+                    <UserIcon className="h-3.5 w-3.5 text-[#5C7870]" />
                     <span>Meu perfil</span>
                   </Link>
 
                   <Link
                     href="/settings"
                     onClick={() => onClose?.()}
-                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[#355D54] hover:text-[#205F52] hover:bg-[#EAF5ED] transition-colors"
                   >
-                    <SettingsIcon className="h-3.5 w-3.5 text-slate-400" />
+                    <SettingsIcon className="h-3.5 w-3.5 text-[#5C7870]" />
                     <span>Preferências</span>
                   </Link>
 
-                  <div className="h-px bg-white/[0.08] my-1" />
+                  <div className="h-px bg-[#E5DEC9]/80 my-1" />
 
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors font-medium text-left cursor-pointer"
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors font-medium text-left cursor-pointer"
                   >
-                    <LogOutIcon className="h-3.5 w-3.5 text-rose-400" />
+                    <LogOutIcon className="h-3.5 w-3.5 text-rose-600" />
                     <span>Sair da conta</span>
                   </button>
                 </div>

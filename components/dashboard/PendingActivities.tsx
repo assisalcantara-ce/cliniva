@@ -40,90 +40,88 @@ function formatPatientName(name: string): string {
 
 export function PendingActivities({ pendingSessions }: PendingActivitiesProps) {
   return (
-    <Card className="rounded-xl border border-border/70 bg-white shadow-xs">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 p-5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+    <Card className="rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 p-5 pb-3.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#205F52]">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
             </svg>
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-foreground">
+            <CardTitle className="text-base font-bold text-[#25463E]">
               Atividades Pendentes
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Sessões que necessitam de consolidação clínica pós-atendimento
-            </p>
           </div>
         </div>
 
-        <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-800">
-          {pendingSessions.length} {pendingSessions.length === 1 ? "pendência" : "pendências"}
-        </span>
+        {pendingSessions.length > 0 && (
+          <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+            {pendingSessions.length}
+          </span>
+        )}
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="p-4 space-y-2.5">
         {pendingSessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2 border border-emerald-100">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2 border border-emerald-100">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-xs font-semibold text-foreground">
+            <p className="text-xs font-semibold text-[#25463E]">
               Nenhuma atividade pendente
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Todas as sessões gravadas possuem síntese gerada e memória consolidada.
+            <p className="text-[11px] text-[#5C7870] mt-0.5">
+              Tudo em dia! Sínteses e memórias consolidadas.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-border/60">
-            {pendingSessions.map((session) => {
+          <div className="space-y-2.5">
+            {pendingSessions.map((session, idx) => {
               const formattedName = formatPatientName(session.patientName);
               const formattedDate = formatDate(session.sessionDate);
+              const isEven = idx % 2 === 0;
 
               return (
                 <div
                   key={session.sessionId}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-amber-50/20 transition-colors gap-3"
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-[#FCFDFD] hover:bg-[#F7FAF9] transition-all gap-3"
                 >
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {formattedName}
-                      </p>
-                      <span className="rounded bg-amber-100/70 border border-amber-200 px-1.5 py-0.2 text-[10px] font-semibold text-amber-900">
-                        {session.chunksCount} trechos gravados
-                      </span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                        isEven
+                          ? "bg-amber-50 text-[#8C5D23]"
+                          : "bg-emerald-50 text-[#205F52]"
+                      }`}
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Sessão realizada em {formattedDate} · Síntese pendente
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#25463E] leading-tight truncate">
+                        {isEven ? "Gerar síntese da sessão" : "Revisar registro do atendimento"}
+                      </p>
+                      <p className="text-[11px] text-[#5C7870] leading-tight truncate mt-0.5">
+                        {formattedName} • {formattedDate}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                    <Button
-                      asChild
-                      size="sm"
-                      className="h-7 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-xs"
-                    >
-                      <Link href={`/sessions/${session.sessionId}`}>
-                        Gerar Síntese
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      <Link href={`/patients/${session.patientId}`}>
-                        Prontuário
-                      </Link>
-                    </Button>
-                  </div>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2.5 text-xs font-bold text-[#205F52] border border-emerald-200/80 hover:bg-[#EAF5ED] shrink-0 rounded-lg"
+                  >
+                    <Link href={`/sessions/${session.sessionId}`}>
+                      {isEven ? "Concluir →" : "Revisar →"}
+                    </Link>
+                  </Button>
                 </div>
               );
             })}

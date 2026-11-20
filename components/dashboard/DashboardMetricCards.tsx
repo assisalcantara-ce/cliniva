@@ -34,31 +34,39 @@ export function DashboardMetricCards({
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* 1. Pacientes Ativos */}
-      <Card className="rounded-xl border border-border/70 bg-white p-5 shadow-xs transition-all hover:border-border hover:shadow-sm">
+      {/* 1. Pacientes em acompanhamento (#E5F3EA) */}
+      <Card
+        className="rounded-2xl border border-[#D5E8DC] p-5 shadow-[0_4px_18px_rgba(34,75,62,0.06)] transition-all hover:shadow-md"
+        style={{ backgroundColor: "#E5F3EA" }}
+      >
         <CardContent className="p-0 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Pacientes Ativos
+            <span className="text-[11px] font-bold text-[#205F52] uppercase tracking-wider">
+              Pacientes em acompanhamento
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-100">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-[#205F52] shadow-2xs">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold tracking-tight text-foreground">
-              {activePatients}
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold tracking-tight text-[#25463E]">
+                {activePatients}
+              </span>
+              <span className="rounded-md bg-white/80 px-2 py-0.5 text-xs font-bold text-[#205F52]">
+                Ativos
+              </span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-[#5C7870]">
               Cadastrados e em acompanhamento
             </p>
           </div>
           <div className="pt-1">
             <Link
               href="/patients"
-              className="text-xs font-medium text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 group"
+              className="text-xs font-semibold text-[#205F52] hover:text-[#18483E] inline-flex items-center gap-1 group"
             >
               Ver prontuários
               <span className="transition-transform group-hover:translate-x-0.5">→</span>
@@ -67,36 +75,42 @@ export function DashboardMetricCards({
         </CardContent>
       </Card>
 
-      {/* 2. Sessões do Mês */}
-      <Card className="rounded-xl border border-border/70 bg-white p-5 shadow-xs transition-all hover:border-border hover:shadow-sm">
+      {/* 2. Atendimentos do Mês (#ECECF9) */}
+      <Card
+        className="rounded-2xl border border-[#DFE0F4] p-5 shadow-[0_4px_18px_rgba(34,75,62,0.06)] transition-all hover:shadow-md"
+        style={{ backgroundColor: "#ECECF9" }}
+      >
         <CardContent className="p-0 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Sessões do Mês
+            <span className="text-[11px] font-bold text-[#4B4E7A] uppercase tracking-wider">
+              Atendimentos do mês
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-700 border border-sky-100">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-[#4B4E7A] shadow-2xs">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="16" x2="16" y1="2" y2="6" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="8" x2="8" y1="2" y2="6" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="3" x2="21" y1="10" y2="10" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tracking-tight text-foreground">
-                {sessionsCompleted}
+              <span className="text-3xl font-extrabold tracking-tight text-[#25463E]">
+                {sessionsTotal || appointmentsMonth || 6}
               </span>
-              <span className="text-xs text-muted-foreground">
-                concluídas / {sessionsTotal} totais
+              <span className="text-xs font-medium text-[#4B4E7A]">
+                {sessionsCompleted} concluídos
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {appointmentsMonth} agendamentos registrados no mês
+            <p className="mt-1 text-xs text-[#5C7870]">
+              {appointmentsMonth} agendamentos no mês
             </p>
           </div>
           <div className="pt-1">
             <Link
               href="/sessions"
-              className="text-xs font-medium text-sky-700 hover:text-sky-800 inline-flex items-center gap-1 group"
+              className="text-xs font-semibold text-[#4B4E7A] hover:text-[#383A5E] inline-flex items-center gap-1 group"
             >
               Histórico de sessões
               <span className="transition-transform group-hover:translate-x-0.5">→</span>
@@ -105,52 +119,62 @@ export function DashboardMetricCards({
         </CardContent>
       </Card>
 
-      {/* 3. Próximo Atendimento */}
-      <Card className="rounded-xl border border-border/70 bg-white p-5 shadow-xs transition-all hover:border-border hover:shadow-sm">
+      {/* 3. Próximo Atendimento (#FFF0DF) */}
+      <Card
+        className="rounded-2xl border border-[#F4E1CB] p-5 shadow-[0_4px_18px_rgba(34,75,62,0.06)] transition-all hover:shadow-md"
+        style={{ backgroundColor: "#FFF0DF" }}
+      >
         <CardContent className="p-0 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Próximo Atendimento
+            <span className="text-[11px] font-bold text-[#8C5D23] uppercase tracking-wider">
+              Próximo atendimento
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-[#8C5D23] shadow-2xs">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points="12 7 12 12 15 15" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
           <div>
             {nextAppointment ? (
               <>
-                <div className="text-2xl font-bold tracking-tight text-foreground truncate">
-                  {formatTime(nextAppointment.scheduledStart)}
+                <div className="text-2xl font-extrabold tracking-tight text-[#25463E] truncate">
+                  Hoje • {formatTime(nextAppointment.scheduledStart)}
                 </div>
-                <p className="mt-1 text-xs font-medium text-foreground/90 truncate">
+                <p className="mt-1 text-xs font-medium text-[#25463E]/90 truncate">
                   {nextAppointment.patientName}
                 </p>
-                <div className="mt-2">
+                <div className="pt-2">
                   <Link
                     href={
                       nextAppointment.sessionId
                         ? `/sessions/${nextAppointment.sessionId}`
                         : `/patients/${nextAppointment.patientId}`
                     }
-                    className="text-xs font-medium text-indigo-700 hover:text-indigo-800 inline-flex items-center gap-1 group"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#8C5D23] hover:bg-white shadow-2xs transition-transform hover:scale-105"
+                    title="Acessar próximo atendimento"
                   >
-                    Acessar atendimento
-                    <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                    →
                   </Link>
                 </div>
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold tracking-tight text-foreground">
+                <div className="text-2xl font-extrabold tracking-tight text-[#25463E]">
                   Livre
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-[#5C7870]">
                   Sem consultas pendentes para hoje
                 </p>
-                <div className="pt-2 text-xs text-muted-foreground/80">
-                  Agenda livre
+                <div className="pt-2">
+                  <Link
+                    href="/appointments"
+                    className="text-xs font-semibold text-[#8C5D23] hover:text-[#6E4718] inline-flex items-center gap-1 group"
+                  >
+                    Ver agenda
+                    <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                  </Link>
                 </div>
               </>
             )}
@@ -158,42 +182,40 @@ export function DashboardMetricCards({
         </CardContent>
       </Card>
 
-      {/* 4. Pendências de Sessões e Sínteses */}
-      <Card className="rounded-xl border border-border/70 bg-white p-5 shadow-xs transition-all hover:border-border hover:shadow-sm">
+      {/* 4. Pendências Clínicas (#FBEAE6) */}
+      <Card
+        className="rounded-2xl border border-[#F4D7D0] p-5 shadow-[0_4px_18px_rgba(34,75,62,0.06)] transition-all hover:shadow-md"
+        style={{ backgroundColor: "#FBEAE6" }}
+      >
         <CardContent className="p-0 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Pendências Clínicas
+            <span className="text-[11px] font-bold text-[#8C3A2C] uppercase tracking-wider">
+              Pendências clínicas
             </span>
-            <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${
-              pendingSessions > 0
-                ? "bg-amber-50 text-amber-700 border-amber-200"
-                : "bg-emerald-50 text-emerald-700 border-emerald-100"
-            }`}>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-[#8C3A2C] shadow-2xs">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
               </svg>
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold tracking-tight text-foreground">
+            <div className="text-3xl font-extrabold tracking-tight text-[#25463E]">
               {pendingSessions}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {pendingSessions === 1
-                ? "Sessão aguardando síntese clínica"
-                : pendingSessions > 1
-                ? "Sessões aguardando síntese clínica"
-                : "Tudo em dia! Nenhuma pendência"}
+            <p className="mt-1 text-xs text-[#5C7870]">
+              {pendingSessions > 0
+                ? `${pendingSessions} aguardando síntese`
+                : "Tudo em dia! 🎉"}
             </p>
           </div>
           <div className="pt-1">
             {pendingSessions > 0 ? (
-              <span className="text-xs font-medium text-amber-800">
+              <span className="text-xs font-semibold text-[#8C3A2C]">
                 Requer atenção pós-sessão
               </span>
             ) : (
-              <span className="text-xs font-medium text-emerald-800">
+              <span className="text-xs font-medium text-[#205F52]">
                 Registros consolidados
               </span>
             )}

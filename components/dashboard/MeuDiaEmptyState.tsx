@@ -51,24 +51,24 @@ export function MeuDiaEmptyState({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0">
+          <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0">
             <Button
               asChild
-              className="h-8.5 px-3.5 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 shadow-xs"
+              className="h-8 px-3 text-xs font-semibold bg-[#205F52] text-white hover:bg-[#18483E] shadow-2xs rounded-lg"
             >
               <Link href="/appointments">Ver Agenda</Link>
             </Button>
             <Button
               asChild
-              variant="secondary"
-              className="h-8.5 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+              variant="ghost"
+              className="h-8 px-2.5 text-xs font-medium text-[#205F52] hover:bg-[#EAF5ED] border border-slate-200 rounded-lg"
             >
               <Link href="/patients">Cadastrar Paciente</Link>
             </Button>
             <Button
               asChild
-              variant="secondary"
-              className="h-8.5 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+              variant="ghost"
+              className="h-8 px-2.5 text-xs font-medium text-[#5C7870] hover:text-[#25463E] border border-slate-200 rounded-lg"
             >
               <Link href="/materials">Preparar Materiais</Link>
             </Button>

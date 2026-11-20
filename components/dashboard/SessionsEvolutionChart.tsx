@@ -33,33 +33,33 @@ export function SessionsEvolutionChart({ data }: SessionsEvolutionChartProps) {
   );
 
   return (
-    <Card className="rounded-xl border border-border/70 bg-white shadow-xs">
-      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 p-5">
+    <Card className="rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 p-5 pb-3.5">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-100">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#205F52]">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
               </svg>
             </div>
-            <CardTitle className="text-base font-bold text-foreground">
+            <CardTitle className="text-base font-bold text-[#25463E]">
               Evolução dos Atendimentos
             </CardTitle>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-[#5C7870] mt-0.5">
             Sessões realizadas e concluídas nas últimas semanas
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border/80 bg-muted/40 p-0.5 text-xs">
+          <div className="flex rounded-xl bg-slate-100/90 p-1 text-xs">
             <button
               type="button"
               onClick={() => setPeriodFilter("all")}
-              className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+              className={`rounded-lg px-3 py-1 font-semibold transition-all ${
                 periodFilter === "all"
-                  ? "bg-white text-teal-800 shadow-2xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[#205F52] text-white shadow-2xs"
+                  : "text-[#5C7870] hover:text-[#25463E]"
               }`}
             >
               Últimas 6 semanas
@@ -67,13 +67,13 @@ export function SessionsEvolutionChart({ data }: SessionsEvolutionChartProps) {
             <button
               type="button"
               onClick={() => setPeriodFilter("4weeks")}
-              className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+              className={`rounded-lg px-3 py-1 font-semibold transition-all ${
                 periodFilter === "4weeks"
-                  ? "bg-white text-teal-800 shadow-2xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[#205F52] text-white shadow-2xs"
+                  : "text-[#5C7870] hover:text-[#25463E]"
               }`}
             >
-              Último mês (4 sem)
+              Último mês
             </button>
           </div>
         </div>
@@ -81,23 +81,17 @@ export function SessionsEvolutionChart({ data }: SessionsEvolutionChartProps) {
 
       <CardContent className="p-5 space-y-4">
         {/* Métricas rápidas da seleção */}
-        <div className="flex items-center gap-6 text-xs text-muted-foreground border-b border-border/40 pb-3">
+        <div className="flex items-center justify-center gap-8 text-xs text-[#5C7870] pt-2">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-teal-600" />
+            <span className="h-3 w-3 rounded-full bg-[#A2D8D0]" />
             <span>
-              <strong className="text-foreground font-semibold">
-                {totalConducted}
-              </strong>{" "}
-              sessões realizadas
+              Sessões realizadas ({totalConducted})
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span className="h-3 w-3 rounded-full bg-[#205F52]" />
             <span>
-              <strong className="text-foreground font-semibold">
-                {totalCompleted}
-              </strong>{" "}
-              concluídas com síntese
+              Concluídas com síntese ({totalCompleted})
             </span>
           </div>
         </div>
@@ -121,38 +115,38 @@ export function SessionsEvolutionChart({ data }: SessionsEvolutionChartProps) {
               <AreaChart data={displayData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0d9488" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#0d9488" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#A2D8D0" stopOpacity={0.6} />
+                    <stop offset="95%" stopColor="#A2D8D0" stopOpacity={0.1} />
                   </linearGradient>
                   <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#205F52" stopOpacity={0.7} />
+                    <stop offset="95%" stopColor="#205F52" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEF2F6" />
                 <XAxis
                   dataKey="weekLabel"
                   tickLine={false}
                   axisLine={{ stroke: "#e2e8f0" }}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "#5C7870" }}
                 />
                 <YAxis
                   allowDecimals={false}
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "#5C7870" }}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const item = payload[0].payload as DashboardWeeklyItem;
                       return (
-                        <div className="rounded-lg border border-border bg-white p-2.5 shadow-md text-xs space-y-1">
-                          <p className="font-semibold text-foreground">{item.weekLabel}</p>
-                          <p className="text-teal-700">
-                            Total de Sessões: <strong>{item.totalSessions}</strong>
+                        <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-lg text-xs space-y-1">
+                          <p className="font-bold text-[#25463E]">{item.weekLabel}</p>
+                          <p className="text-[#205F52]">
+                            Sessões Realizadas: <strong>{item.totalSessions}</strong>
                           </p>
-                          <p className="text-emerald-700">
+                          <p className="text-[#10b981]">
                             Concluídas com Síntese: <strong>{item.completedSessions}</strong>
                           </p>
                         </div>
@@ -164,17 +158,17 @@ export function SessionsEvolutionChart({ data }: SessionsEvolutionChartProps) {
                 <Area
                   type="monotone"
                   dataKey="totalSessions"
-                  stroke="#0d9488"
+                  stroke="#79C5BA"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorTotal)"
-                  name="Total de Sessões"
+                  name="Sessões Realizadas"
                 />
                 <Area
                   type="monotone"
                   dataKey="completedSessions"
-                  stroke="#10b981"
-                  strokeWidth={2}
+                  stroke="#205F52"
+                  strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorCompleted)"
                   name="Concluídas"

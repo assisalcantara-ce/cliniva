@@ -4,10 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeuDiaResponse } from "@/lib/db/dashboard";
 import {
-  NextAppointmentCard,
   TodayScheduleTimeline,
-  ClinicalDayAlerts,
-  PostSessionPendencies,
   MeuDiaEmptyState,
   MeuDiaSkeleton,
   MeuDiaErrorState,
@@ -128,39 +125,39 @@ export default function DashboardPage() {
   const greeting = getGreeting();
 
   return (
-    <div className="patients-page space-y-6 pb-12">
-      {/* Header Clínico "Meu Dia" */}
-      <div className="page-header">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <div className="title-row">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 border border-teal-200/80 shrink-0">
+    <div
+      className="min-h-screen bg-no-repeat bg-top"
+      style={{
+        backgroundImage: "url('/img/bg_dashboard.png')",
+        backgroundSize: "100% auto",
+        backgroundColor: "#FAF8F5",
+      }}
+    >
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 md:px-8 pt-7 pb-14 space-y-6">
+        {/* Header Clínico Acolhedor conforme Mockup */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between min-h-[64px]">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100/70 text-[#205F52] border border-emerald-200/60 shadow-xs shrink-0">
               <svg
-                className="h-5 w-5"
+                className="h-6 w-6"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="1.75"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                <path d="M11 20A7 7 0 0 1 4 13C4 9.13 7.13 6 11 6c4.97 0 9 4.03 9 9 0 2.12-.74 4.07-1.97 5.61" />
+                <path d="M12 10a4 4 0 0 0-4 4c0 1.66 1.01 3.08 2.45 3.68" />
+                <path d="M21 3v6h-6" />
               </svg>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="page-title text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  {greeting}
-                </h1>
-                <span className="hidden sm:inline-block text-muted-foreground/50">
-                  •
-                </span>
-                <span className="hidden sm:inline-block text-xs font-semibold uppercase tracking-wider text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-100">
-                  Meu Dia
-                </span>
-              </div>
-              <p className="text-xs font-medium text-muted-foreground mt-0.5">
-                {formattedDate}
+              <h1 className="text-2xl font-bold tracking-tight text-[#25463E] sm:text-2xl">
+                {greeting}, Dra. Cristiane
+              </h1>
+              <p className="text-xs font-medium text-[#5C7870] mt-0.5">
+                Bem-vinda ao seu consultório digital
               </p>
             </div>
           </div>
@@ -169,10 +166,10 @@ export default function DashboardPage() {
             type="button"
             onClick={fetchData}
             aria-label="Atualizar dados do dia"
-            className="self-start sm:self-auto inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/10 hover:text-foreground shadow-xs"
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white/90 px-3.5 py-2 text-xs font-semibold text-[#25463E] transition-all hover:bg-white hover:shadow-xs shadow-2xs cursor-pointer"
           >
             <svg
-              className="h-3.5 w-3.5"
+              className="h-3.5 w-3.5 text-[#205F52]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -186,58 +183,39 @@ export default function DashboardPage() {
             Atualizar
           </button>
         </div>
-      </div>
 
-      {/* 1. Indicadores Reais da Prática Clínica (4 Cards) */}
-      <DashboardMetricCards
-        metrics={data.metrics}
-        nextAppointment={data.nextAppointment}
-      />
-
-      {/* 2. Próximo Atendimento Iminente (se houver agendamento próximo) */}
-      {data.nextAppointment ? (
-        <NextAppointmentCard
-          appointment={data.nextAppointment}
-          onStartSession={handleStartSession}
+        {/* 1. Quatro Indicadores Coloridos conforme Mockup */}
+        <DashboardMetricCards
+          metrics={data.metrics}
+          nextAppointment={data.nextAppointment}
         />
-      ) : null}
 
-      {/* 3. Grid Principal: Agenda de Hoje + Apoio Clínico */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          {data.todaySchedule.length > 0 ? (
-            <TodayScheduleTimeline
-              schedule={data.todaySchedule}
-              onStartSession={handleStartSession}
-            />
-          ) : (
-            <MeuDiaEmptyState dateLabel={formattedDate} />
-          )}
+        {/* 2. Segunda Faixa: Agenda de Hoje + Atividades Pendentes (Proporção 2:1) */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            {data.todaySchedule.length > 0 ? (
+              <TodayScheduleTimeline
+                schedule={data.todaySchedule}
+                onStartSession={handleStartSession}
+              />
+            ) : (
+              <MeuDiaEmptyState dateLabel={formattedDate} />
+            )}
+          </div>
+
+          <div className="lg:col-span-1">
+            <PendingActivities pendingSessions={data.pendingPostSessions} />
+          </div>
         </div>
 
-        <div className="lg:col-span-1 space-y-6">
-          {/* Alertas e Sinais de Atenção */}
-          <ClinicalDayAlerts nextAppointment={data.nextAppointment} />
-
-          {/* Pendências de Fechamento Pós-Sessão compactas */}
-          {data.pendingPostSessions.length > 0 ? (
-            <PostSessionPendencies
-              pendingSessions={data.pendingPostSessions}
-            />
-          ) : null}
-        </div>
-      </div>
-
-      {/* 4. Seção Atividades Pendentes Detalhadas */}
-      <PendingActivities pendingSessions={data.pendingPostSessions} />
-
-      {/* 5. Grid Inferior: Evolução dos Atendimentos (Gráfico Recharts) + Pacientes Recentes */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <SessionsEvolutionChart data={data.weeklyEvolution ?? []} />
-        </div>
-        <div className="lg:col-span-1">
-          <RecentPatientsList patients={data.recentPatients ?? []} />
+        {/* 3. Terceira Faixa: Evolução dos Atendimentos (Gráfico Recharts) + Pacientes Recentes */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <SessionsEvolutionChart data={data.weeklyEvolution ?? []} />
+          </div>
+          <div className="lg:col-span-1">
+            <RecentPatientsList patients={data.recentPatients ?? []} />
+          </div>
         </div>
       </div>
     </div>

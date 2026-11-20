@@ -40,99 +40,93 @@ function formatPatientName(name: string): string {
     .join(" ");
 }
 
+function getInitials(name: string): string {
+  if (!name) return "P";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function RecentPatientsList({ patients }: RecentPatientsListProps) {
   return (
-    <Card className="rounded-xl border border-border/70 bg-white shadow-xs">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 p-5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-100">
+    <Card className="rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_4px_18px_rgba(34,75,62,0.04)] overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 p-5 pb-3.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#205F52]">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-foreground">
+            <CardTitle className="text-base font-bold text-[#25463E]">
               Pacientes Recentes
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Acesso rápido ao prontuário e histórico
-            </p>
           </div>
         </div>
 
         <Link
           href="/patients"
-          className="text-xs font-semibold text-teal-700 hover:text-teal-800"
+          className="text-xs font-semibold text-[#205F52] hover:text-[#18483E] inline-flex items-center gap-1 group"
         >
-          Ver todos →
+          Ver todos
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </Link>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="p-4 space-y-2.5">
         {patients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center">
-            <p className="text-xs text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <p className="text-xs text-[#5C7870]">
               Nenhum paciente cadastrado ainda.
             </p>
-            <Button asChild size="sm" variant="secondary" className="mt-3 text-xs">
+            <Button asChild size="sm" variant="ghost" className="mt-3 text-xs border border-emerald-200 text-[#205F52]">
               <Link href="/patients">Cadastrar Paciente</Link>
             </Button>
           </div>
         ) : (
-          <div className="divide-y divide-border/60">
+          <div className="space-y-2.5">
             {patients.map((p) => {
               const formattedName = formatPatientName(p.fullName);
               const lastDate = formatDate(p.lastSessionDate);
+              const initials = getInitials(p.fullName);
 
               return (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-4 hover:bg-muted/15 transition-colors gap-3"
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-[#FCFDFD] hover:bg-[#F7FAF9] transition-all gap-3"
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {formattedName}
-                      </p>
-                      <span
-                        className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                          p.isActive
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-slate-50 text-slate-500 border-slate-200"
-                        }`}
-                      >
-                        {p.isActive ? "Ativo" : "Inativo"}
-                      </span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-bold text-[11px]">
+                      {initials}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Última sessão: {lastDate}
-                    </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-[#25463E] truncate leading-tight">
+                          {formattedName}
+                        </p>
+                        <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-800 border border-emerald-100">
+                          Ativo
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#5C7870] truncate leading-tight mt-0.5">
+                        Última sessão: {lastDate}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100"
-                    >
-                      <Link href={`/patients/${p.id}`}>
-                        Prontuário
-                      </Link>
-                    </Button>
-                    {p.lastSessionId && (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 text-xs text-muted-foreground hover:text-foreground hidden sm:inline-flex"
-                      >
-                        <Link href={`/sessions/${p.lastSessionId}`}>
-                          Ver Sessão
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs font-semibold text-[#205F52] border border-slate-200 hover:bg-slate-50 shrink-0 rounded-lg gap-1"
+                  >
+                    <Link href={`/patients/${p.id}`}>
+                      <svg className="h-3 w-3 text-[#205F52]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                      Prontuário
+                    </Link>
+                  </Button>
                 </div>
               );
             })}
