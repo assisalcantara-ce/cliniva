@@ -13,6 +13,8 @@ interface PostSessionViewProps {
   patientMemory?: string | null;
   insights: InsightsPackage | null;
   isGenerating?: boolean;
+  error?: string | null;
+  hasTranscript?: boolean;
   onGenerateFullInsights?: () => void;
   onFinishAndLeave: () => void;
 }
@@ -23,6 +25,8 @@ export function PostSessionView({
   patientMemory,
   insights,
   isGenerating,
+  error,
+  hasTranscript = true,
   onGenerateFullInsights,
   onFinishAndLeave,
 }: PostSessionViewProps) {
@@ -76,6 +80,51 @@ export function PostSessionView({
             </p>
           </div>
         </div>
+      ) : isGenerating ? (
+        <div className="rounded-2xl border border-border bg-card p-10 text-center space-y-4 shadow-sm animate-pulse">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+            <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" stroke="currentColor" strokeWidth="4" />
+              <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor" />
+            </svg>
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-foreground">
+              Processando Síntese Clínica...
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Consolidando os temas, perguntas exploratórias, hipóteses e próximos passos com base na transcrição registrada.
+            </p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-8 text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-rose-900">
+              Não foi possível gerar a síntese
+            </h3>
+            <p className="text-xs text-rose-700 max-w-md mx-auto">
+              {error}
+            </p>
+          </div>
+          {onGenerateFullInsights && (
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button
+                onClick={onGenerateFullInsights}
+                className="bg-rose-600 hover:bg-rose-700 text-white"
+              >
+                Tentar Novamente
+              </Button>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center space-y-4">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-600">
@@ -89,19 +138,21 @@ export function PostSessionView({
           </div>
           <div className="space-y-1">
             <h3 className="text-base font-semibold text-foreground">
-              Síntese da Sessão em Processamento
+              {hasTranscript ? "Aguardando Geração da Síntese" : "Sessão sem Transcrição"}
             </h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              A transcrição da sessão foi registrada com sucesso. Clique abaixo para gerar a consolidação clínica completa com hipóteses e próximos passos.
+              {hasTranscript
+                ? "Os trechos de áudio foram gravados e persistidos. Clique abaixo para gerar a análise pós-sessão assistiva com IA."
+                : "Nenhum trecho de fala ou nota clínica foi registrado nesta sessão. Você pode concluir e retornar ao prontuário."}
             </p>
           </div>
-          {onGenerateFullInsights && (
+          {onGenerateFullInsights && hasTranscript && (
             <Button
               onClick={onGenerateFullInsights}
               disabled={isGenerating}
               className="bg-teal-600 hover:bg-teal-700 text-white"
             >
-              {isGenerating ? "Gerando síntese..." : "Gerar Síntese Completa"}
+              Gerar Síntese Completa
             </Button>
           )}
         </div>

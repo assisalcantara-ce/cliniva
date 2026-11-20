@@ -6,6 +6,7 @@ import { WebSocketAudioTransport } from "@/lib/audio/transport/websocketTranspor
 import { audioChunkToBase64 } from "@/lib/audio/mimeHelper";
 import type { AudioChunk } from "@/lib/audio/types";
 import type { AudioTransportState, ServerAudioTransportMessage } from "@/lib/audio/transport/types";
+import type { CopilotEvent } from "@/lib/copilot/types";
 
 export type CopilotAudioOverallState =
   | "idle"
@@ -26,6 +27,7 @@ export interface UseCopilotAudioProps {
   endpointUrl?: string;
   onInterimTranscript?: (text: string) => void;
   onFinalTranscript?: (text: string, chunkId: string) => void;
+  onCopilotEvent?: (event: CopilotEvent) => void;
   onError?: (error: Error) => void;
 }
 
@@ -50,6 +52,7 @@ export function useCopilotAudio({
   endpointUrl,
   onInterimTranscript,
   onFinalTranscript,
+  onCopilotEvent,
   onError,
 }: UseCopilotAudioProps): UseCopilotAudioResult {
   const [state, setState] = useState<CopilotAudioOverallState>("idle");
@@ -148,6 +151,7 @@ export function useCopilotAudio({
 
     const effectiveTherapistId = therapistId;
     sequenceCounterRef.current = 0;
+    const t0 = Date.now();
 
     // 1. Instanciar e Conectar WebSocketAudioTransport
     const transport = new WebSocketAudioTransport(
@@ -156,7 +160,7 @@ export function useCopilotAudio({
         therapistId: effectiveTherapistId,
         patientId,
         endpointUrl,
-        autoReconnect: true,
+        autoReconnect: false,
       },
       {
         onStateChange: (transportState: AudioTransportState) => {
@@ -181,6 +185,8 @@ export function useCopilotAudio({
             onInterimTranscript?.(msg.text);
           } else if (msg.type === "transcript_final") {
             onFinalTranscript?.(msg.text, msg.chunkId);
+          } else if (msg.type === "copilot_event") {
+            onCopilotEvent?.(msg.event as CopilotEvent);
           }
         },
       }
@@ -190,6 +196,7 @@ export function useCopilotAudio({
 
     try {
       await transport.connect();
+      console.log(`[CopilotAudio] ws_connect_ms: ${Date.now() - t0}`);
 
       // 2. Enviar session_start
       transport.send({
@@ -206,7 +213,7 @@ export function useCopilotAudio({
       // 3. Inicializar AudioCapture
       const capture = new AudioCapture(
         {
-          timeSliceMs: 4000,
+          timeSliceMs: 2000,
           sampleRate: 16000,
           channelCount: 1,
         },
@@ -216,6 +223,10 @@ export function useCopilotAudio({
             try {
               const base64Data = await audioChunkToBase64(chunk.blob);
               sequenceCounterRef.current += 1;
+
+              if (sequenceCounterRef.current === 1) {
+                console.log(`[CopilotAudio] first_chunk_sent_ms: ${Date.now() - t0}`);
+              }
 
               transportRef.current.send({
                 type: "audio_chunk",
@@ -243,7 +254,9 @@ export function useCopilotAudio({
       audioCaptureRef.current = capture;
 
       // 4. Solicitar microfone e iniciar gravação
+      const t1 = Date.now();
       await capture.start();
+      console.log(`[CopilotAudio] mic_permission_ms: ${Date.now() - t1}`);
 
       isStartedRef.current = true;
       setState("listening");
@@ -255,7 +268,7 @@ export function useCopilotAudio({
       onError?.(structuredErr);
       handleStop();
     }
-  }, [sessionId, therapistId, patientId, endpointUrl, onError, handleStop, onInterimTranscript, onFinalTranscript]);
+  }, [sessionId, therapistId, patientId, endpointUrl, onError, handleStop, onInterimTranscript, onFinalTranscript, onCopilotEvent]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;

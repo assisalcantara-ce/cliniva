@@ -239,7 +239,10 @@ export async function POST(
     );
   } catch (error) {
     // Estorno atômico em caso de falha crítica na OpenAI ou no banco de dados
-    await refundCorporateAiQuota({ therapistId, entitlement: (await getTherapistEntitlements(therapistId).catch(() => null)) as any }).catch(() => {});
+    const ent = await getTherapistEntitlements(therapistId).catch(() => null);
+    if (ent) {
+      await refundCorporateAiQuota({ therapistId, entitlement: ent }).catch(() => {});
+    }
 
     const message = error instanceof Error ? error.message : "Unknown error";
     const isOpenAI = message.startsWith("OpenAI") || message.includes("OpenAI");

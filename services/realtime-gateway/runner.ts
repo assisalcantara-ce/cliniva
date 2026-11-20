@@ -23,13 +23,15 @@ const gateway = new RealtimeGatewayServer({
     try {
       const entitlement = await getTherapistEntitlements(therapistId);
       if (!entitlement.canUseFeature("realtime_audio_stt")) {
+        console.warn(`[RealtimeGateway] Terapeuta ${therapistId} sem permissão realtime_audio_stt`);
         return {
           allowed: false,
           reason: "Acesso negado: a transcrição de áudio em tempo real é exclusiva dos planos Premium e Profissional.",
         };
       }
       return { allowed: true };
-    } catch {
+    } catch (err) {
+      console.error(`[RealtimeGateway] Erro ao validar direitos do terapeuta ${therapistId}:`, err);
       return { allowed: false, reason: "Falha ao validar direitos da assinatura." };
     }
   },
@@ -72,6 +74,27 @@ orchestrator.onOutput(async (ev) => {
       );
     } catch (dbErr) {
       console.error("[RealtimeGateway] Erro ao persistir transcript_chunk:", dbErr);
+    }
+  } else if (ev.type === "copilot_events_ready" && ev.newEvents && ev.newEvents.length > 0) {
+    // 3. Envia cada evento clínico diretamente via WebSocket para o cliente ativo
+    for (const copilotEv of ev.newEvents) {
+      gateway.sendToSession(ev.sessionId, {
+        type: "copilot_event",
+        sessionId: ev.sessionId,
+        therapistId: ev.therapistId,
+        event: {
+          id: copilotEv.id,
+          type: copilotEv.type,
+          title: copilotEv.title,
+          description: copilotEv.description,
+          urgency: copilotEv.urgency,
+          rationale: copilotEv.rationale,
+          suggestedAction: copilotEv.suggestedAction,
+          evidence: copilotEv.evidence,
+          createdAt: copilotEv.createdAt,
+        },
+        timestamp: Date.now(),
+      });
     }
   } else if (ev.type === "pipeline_error" && ev.error) {
     gateway.sendToSession(ev.sessionId, {

@@ -8,6 +8,8 @@ export interface LiveSessionHeaderProps {
   sessionId: string;
   streamState: ConnectionState;
   startTime?: Date | null;
+  captureEnabled?: boolean;
+  audioState?: string;
   onPause?: () => void;
   onResume?: () => void;
   onEndSession: () => void;
@@ -26,6 +28,8 @@ export function LiveSessionHeader({
   patientName,
   streamState,
   startTime,
+  captureEnabled = true,
+  audioState,
   onPause,
   onResume,
   onEndSession,
@@ -59,23 +63,27 @@ export function LiveSessionHeader({
   const initials = getInitials(patientName);
   const displayName = patientName || "Maria Zilda";
 
-  const statusLabel = isError
+  const statusLabel = !captureEnabled
+    ? "Aguardando início da captura"
+    : isError || audioState === "error"
     ? "Erro no pipeline de áudio"
-    : isPaused
+    : isPaused || audioState === "paused"
     ? "Sessão pausada"
-    : isReconnecting
+    : isReconnecting || audioState === "reconnecting"
     ? "Reconectando áudio..."
-    : isConnecting
+    : isConnecting || audioState === "connecting"
     ? "Conectando ao Gateway..."
-    : isListening
+    : isListening || audioState === "listening" || audioState === "transcribing"
     ? "Escuta ativa conectada"
     : "Sessão em andamento";
 
-  const statusDotClass = isError
+  const statusDotClass = !captureEnabled
+    ? "bg-slate-400"
+    : isError || audioState === "error"
     ? "bg-rose-500"
-    : isPaused
+    : isPaused || audioState === "paused"
     ? "bg-amber-400"
-    : isReconnecting || isConnecting
+    : isReconnecting || isConnecting || audioState === "reconnecting" || audioState === "connecting"
     ? "bg-amber-500 animate-ping"
     : "bg-emerald-500 animate-pulse";
 
@@ -141,6 +149,7 @@ export function LiveSessionHeader({
           </button>
         )}
 
+        {captureEnabled && (
         <button
           type="button"
           onClick={isPaused ? onResume : onPause}
@@ -164,6 +173,7 @@ export function LiveSessionHeader({
             </>
           )}
         </button>
+        )}
 
         <button
           type="button"

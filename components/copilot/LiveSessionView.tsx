@@ -6,6 +6,7 @@ import { LiveTranscriptPanel } from "./LiveTranscriptPanel";
 import { CopilotFeedPanel } from "./CopilotFeedPanel";
 import { PatientContextDrawer } from "./PatientContextDrawer";
 import type { ConnectionState, RealtimeTranscriptItem, CopilotEventItem } from "./useCopilotStream";
+import type { CopilotAudioOverallState } from "./useCopilotAudio";
 
 export interface LiveSessionViewProps {
   sessionId: string;
@@ -17,6 +18,9 @@ export interface LiveSessionViewProps {
   transcripts: RealtimeTranscriptItem[];
   events: CopilotEventItem[];
   interimTranscript?: string | null;
+  captureEnabled?: boolean;
+  audioState?: CopilotAudioOverallState;
+  onStartCapture?: () => void;
   onPause?: () => void;
   onResume?: () => void;
   onEndSession: () => void;
@@ -25,6 +29,173 @@ export interface LiveSessionViewProps {
   onBack?: () => void;
   onAddQuickNote?: (note: string) => void;
   onBookmarkTopic?: () => void;
+}
+
+// ---------------------------------------------------------------------------
+// AudioLevelMeter — medidor de amplitude real via Web Audio API
+// ---------------------------------------------------------------------------
+function AudioLevelMeter({
+  captureEnabled,
+  isPaused,
+}: {
+  captureEnabled: boolean;
+  isPaused: boolean;
+}) {
+  const [bars, setBars] = React.useState<number[]>([4, 4, 4, 4, 4, 4, 4, 4]);
+  const analyserRef = React.useRef<AnalyserNode | null>(null);
+  const rafRef = React.useRef<number | null>(null);
+  const streamRef = React.useRef<MediaStream | null>(null);
+
+  React.useEffect(() => {
+    if (!captureEnabled || isPaused) {
+      setBars([4, 4, 4, 4, 4, 4, 4, 4]);
+      return;
+    }
+
+    let active = true;
+
+    async function setup() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasMic = devices.some((d) => d.kind === "audioinput");
+        if (!hasMic || !active) return;
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        if (!active) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+
+        const ctx = new AudioContext();
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 64;
+        source.connect(analyser);
+        analyserRef.current = analyser;
+
+        const data = new Uint8Array(analyser.frequencyBinCount);
+
+        function tick() {
+          if (!active || !analyserRef.current) return;
+          analyserRef.current.getByteFrequencyData(data);
+          const newBars = Array.from({ length: 8 }, (_, i) => {
+            const idx = Math.floor((i / 8) * data.length);
+            const val = data[idx] ?? 0;
+            return Math.max(2, Math.round((val / 255) * 24));
+          });
+          setBars(newBars);
+          rafRef.current = requestAnimationFrame(tick);
+        }
+        tick();
+      } catch {
+        // Sem microfone — mantém barras estáticas
+      }
+    }
+
+    void setup();
+
+    return () => {
+      active = false;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+      analyserRef.current = null;
+      streamRef.current = null;
+    };
+  }, [captureEnabled, isPaused]);
+
+  if (!captureEnabled || isPaused) {
+    return (
+      <div className="flex items-center gap-0.5 h-4 ml-1">
+        {[3, 4, 3, 4, 3, 4, 3, 4].map((h, i) => (
+          <span key={i} className="w-0.5 rounded-full bg-slate-300" style={{ height: `${h}px` }} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-0.5 h-6 ml-1">
+      {bars.map((h, i) => (
+        <span
+          key={i}
+          className="w-0.5 rounded-full bg-teal-500 transition-all duration-75"
+          style={{ height: `${h}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CopilotStatusBadge — badge de status real do Copilot
+// ---------------------------------------------------------------------------
+function CopilotStatusBadge({
+  captureEnabled,
+  audioState,
+}: {
+  captureEnabled: boolean;
+  audioState: CopilotAudioOverallState | undefined;
+}) {
+  if (!captureEnabled || !audioState || audioState === "idle" || audioState === "ended") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-slate-400" />
+        <span className="text-xs font-bold text-slate-800">Copilot em espera</span>
+      </div>
+    );
+  }
+
+  if (audioState === "connecting" || audioState === "reconnecting") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <svg
+          className="h-3.5 w-3.5 text-amber-500 animate-spin"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
+        <span className="text-xs font-bold text-slate-800">Conectando...</span>
+      </div>
+    );
+  }
+
+  if (audioState === "listening" || audioState === "transcribing" || audioState === "connected") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+        <span className="text-xs font-bold text-slate-800">Copilot ouvindo</span>
+      </div>
+    );
+  }
+
+  if (audioState === "paused") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-amber-400" />
+        <span className="text-xs font-bold text-slate-800">Copilot pausado</span>
+      </div>
+    );
+  }
+
+  if (audioState === "error") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-rose-500" />
+        <span className="text-xs font-bold text-slate-800">Erro na conexão</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="h-2 w-2 rounded-full bg-slate-400" />
+      <span className="text-xs font-bold text-slate-800">Sessão encerrada</span>
+    </div>
+  );
 }
 
 export function LiveSessionView({
@@ -37,6 +208,9 @@ export function LiveSessionView({
   transcripts,
   events,
   interimTranscript,
+  captureEnabled = false,
+  audioState,
+  onStartCapture,
   onPause,
   onResume,
   onEndSession,
@@ -51,6 +225,22 @@ export function LiveSessionView({
   const [topicMarkedToast, setTopicMarkedToast] = useState(false);
 
   const isPaused = streamState === "paused";
+
+  // Determine mic button color based on audioState
+  const micButtonClass = (() => {
+    if (!captureEnabled) return "";
+    if (audioState === "connecting" || audioState === "reconnecting") {
+      return "bg-amber-100 text-amber-700 hover:bg-amber-200 ring-2 ring-amber-200/40";
+    }
+    if (audioState === "error") {
+      return "bg-rose-100 text-rose-700 hover:bg-rose-200 ring-2 ring-rose-200/40";
+    }
+    if (isPaused || audioState === "paused") {
+      return "bg-slate-100 text-slate-500 hover:bg-slate-200";
+    }
+    // listening / transcribing / connected
+    return "bg-teal-100/90 text-teal-800 hover:bg-teal-200 ring-2 ring-teal-200/40";
+  })();
 
   const handleTogglePause = () => {
     if (isPaused) {
@@ -82,8 +272,10 @@ export function LiveSessionView({
         patientName={patientName}
         streamState={streamState}
         startTime={startTime}
-        onPause={onPause}
-        onResume={onResume}
+        captureEnabled={captureEnabled}
+        audioState={audioState}
+        onPause={captureEnabled ? onPause : undefined}
+        onResume={captureEnabled ? onResume : undefined}
         onEndSession={onEndSession}
         onBack={onBack}
         onOpenContext={() => setContextDrawerOpen(true)}
@@ -120,112 +312,105 @@ export function LiveSessionView({
         {/* 3. Barra Inferior de Controles Flutuantes (Bottom Bar) */}
         <footer className="w-full shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           {/* Card Flutuante Esquerda: Microfone & Ações Rápidas */}
-          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-3 sm:gap-6 rounded-2xl border border-slate-200/80 bg-white px-4 sm:px-5 py-2.5 shadow-2xs">
-            {/* Microfone Ativo + Ondas Sonoras */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleTogglePause}
-                className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-all shadow-2xs cursor-pointer ${
-                  isPaused
-                    ? "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    : "bg-teal-100/90 text-teal-800 hover:bg-teal-200 ring-2 ring-teal-200/40"
-                }`}
-                title={isPaused ? "Microfone pausado (clique para retomar)" : "Microfone ativo"}
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" y1="19" x2="12" y2="22" />
-                </svg>
-              </button>
+          {captureEnabled ? (
+            <div className="flex flex-wrap items-center justify-between sm:justify-start gap-3 sm:gap-6 rounded-2xl border border-slate-200/80 bg-white px-4 sm:px-5 py-2.5 shadow-2xs">
+              {/* Microfone Ativo + Ondas Sonoras */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleTogglePause}
+                  className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-all shadow-2xs cursor-pointer ${micButtonClass}`}
+                  title={isPaused ? "Microfone pausado (clique para retomar)" : "Microfone ativo"}
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                  </svg>
+                </button>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">
-                  {isPaused ? "Microfone pausado" : "Microfone ativo"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-800">
+                    {isPaused ? "Microfone pausado" : "Microfone ativo"}
+                  </span>
 
-                {/* Ondas Sonoras Animadas */}
-                {!isPaused && (
-                  <div className="flex items-center gap-0.5 h-4 ml-1">
-                    {[6, 12, 18, 10, 14, 8, 16, 6].map((h, i) => (
-                      <span
-                        key={i}
-                        className="w-0.5 rounded-full bg-teal-500 animate-pulse"
-                        style={{
-                          height: `${h}px`,
-                          animationDelay: `${i * 0.12}s`,
-                          animationDuration: "1s",
-                        }}
-                      />
-                    ))}
+                  <AudioLevelMeter captureEnabled={captureEnabled} isPaused={isPaused} />
+                </div>
+              </div>
+
+              <div className="hidden sm:block h-6 w-px bg-slate-200" />
+
+              {/* Ações Rápidas com Rótulos Abaixo */}
+              <div className="flex items-center gap-4 sm:gap-6">
+                {/* Pausar / Retomar */}
+                <button
+                  type="button"
+                  onClick={handleTogglePause}
+                  className="flex flex-col items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors shadow-2xs">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                      {isPaused ? (
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      ) : (
+                        <>
+                          <rect x="6" y="4" width="4" height="16" />
+                          <rect x="14" y="4" width="4" height="16" />
+                        </>
+                      )}
+                    </svg>
                   </div>
-                )}
+                  <span className="text-[10px] font-semibold text-slate-600">
+                    {isPaused ? "Retomar" : "Pausar"}
+                  </span>
+                </button>
+
+                {/* Marcar Tópico */}
+                <button
+                  type="button"
+                  onClick={handleMarkTopic}
+                  className="flex flex-col items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
+                  title="Marcar momento clínico relevante"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors shadow-2xs">
+                    <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-600">Marcar tópico</span>
+                </button>
+
+                {/* Adicionar Nota */}
+                <button
+                  type="button"
+                  onClick={() => setQuickNoteOpen(!quickNoteOpen)}
+                  className="flex flex-col items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
+                  title="Escrever anotação rápida da sessão"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors shadow-2xs">
+                    <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-600">Adicionar nota</span>
+                </button>
               </div>
             </div>
-
-            <div className="hidden sm:block h-6 w-px bg-slate-200" />
-
-            {/* Ações Rápidas com Rótulos Abaixo */}
-            <div className="flex items-center gap-4 sm:gap-6">
-              {/* Pausar / Retomar */}
+          ) : (
+            /* Pré-captura: botão proeminente para iniciar escuta */
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 sm:px-5 py-2.5 shadow-2xs">
               <button
                 type="button"
-                onClick={handleTogglePause}
-                className="flex flex-col items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
+                onClick={onStartCapture}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-2xl font-bold shadow cursor-pointer transition-colors"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors shadow-2xs">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    {isPaused ? (
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    ) : (
-                      <>
-                        <rect x="6" y="4" width="4" height="16" />
-                        <rect x="14" y="4" width="4" height="16" />
-                      </>
-                    )}
-                  </svg>
-                </div>
-                <span className="text-[10px] font-semibold text-slate-600">
-                  {isPaused ? "Retomar" : "Pausar"}
-                </span>
+                ▶ Iniciar escuta
               </button>
-
-              {/* Marcar Tópico */}
-              <button
-                type="button"
-                onClick={handleMarkTopic}
-                className="flex flex-col items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
-                title="Marcar momento clínico relevante"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors shadow-2xs">
-                  <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
-                  </svg>
-                </div>
-                <span className="text-[10px] font-semibold text-slate-600">
-                  Marcar tópico
-                </span>
-              </button>
-
-              {/* Adicionar Nota */}
-              <button
-                type="button"
-                onClick={() => setQuickNoteOpen(!quickNoteOpen)}
-                className="flex flex-col items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer group"
-                title="Escrever anotação rápida da sessão"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors shadow-2xs">
-                  <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                </div>
-                <span className="text-[10px] font-semibold text-slate-600">
-                  Adicionar nota
-                </span>
-              </button>
+              <span className="text-xs text-slate-500">
+                Clique para ativar a captura de áudio e transcrição em tempo real
+              </span>
             </div>
-          </div>
+          )}
 
           {/* Card Flutuante Direita: Status do Copilot */}
           <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-5 py-3 shadow-2xs">
@@ -236,14 +421,11 @@ export function LiveSessionView({
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
-                <span className="text-xs font-bold text-slate-800">
-                  Copilot ouvindo...
-                </span>
-              </div>
+              <CopilotStatusBadge captureEnabled={captureEnabled} audioState={audioState} />
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Acompanhando a conversa em tempo real
+                {captureEnabled && (audioState === "listening" || audioState === "transcribing")
+                  ? "Acompanhando a conversa em tempo real"
+                  : "Aguardando início da captura"}
               </p>
             </div>
           </div>

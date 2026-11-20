@@ -26,7 +26,7 @@ export class AudioCapture implements IAudioCapture {
 
   constructor(config?: AudioCaptureConfig, events?: AudioCaptureEvents) {
     this.config = {
-      timeSliceMs: config?.timeSliceMs ?? 4000,
+      timeSliceMs: config?.timeSliceMs ?? 2000,
       sampleRate: config?.sampleRate ?? 16000,
       channelCount: config?.channelCount ?? 1, // Mono por padrão para otimização de STT
       echoCancellation: config?.echoCancellation ?? true,

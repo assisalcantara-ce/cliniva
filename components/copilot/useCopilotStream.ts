@@ -43,6 +43,8 @@ export interface UseCopilotStreamResult {
   copilotEvents: CopilotEventItem[];
   activeCopilotEvents: CopilotEventItem[];
   lastError: string | null;
+  addExternalTranscript: (chunk: { id: string; text: string; speaker?: string; timestamp?: number }) => void;
+  addExternalEvent: (event: CopilotEvent) => void;
   dismissEvent: (eventId: string) => void;
   pinEvent: (eventId: string) => void;
   clearTranscripts: () => void;
@@ -199,6 +201,36 @@ export function useCopilotStream(
     };
   }, [sessionId, maxTranscriptsWindow, connectTrigger]);
 
+  const addExternalTranscript = useCallback(
+    (chunk: { id: string; text: string; speaker?: string; timestamp?: number }) => {
+      const newItem: RealtimeTranscriptItem = {
+        id: chunk.id,
+        text: chunk.text,
+        speaker: chunk.speaker,
+        isFinal: true,
+        timestamp: chunk.timestamp ?? Date.now(),
+      };
+      setTranscripts((prev) => {
+        if (prev.some((p) => p.id === newItem.id)) return prev;
+        const updated = [...prev, newItem];
+        return updated.slice(-maxTranscriptsWindow);
+      });
+    },
+    [maxTranscriptsWindow]
+  );
+
+  const addExternalEvent = useCallback((event: CopilotEvent) => {
+    const newCopilotEv: CopilotEventItem = {
+      ...event,
+      isDismissed: false,
+      isPinned: false,
+    };
+    setCopilotEvents((prev) => {
+      if (prev.some((p) => p.id === newCopilotEv.id)) return prev;
+      return [newCopilotEv, ...prev];
+    });
+  }, []);
+
   const dismissEvent = useCallback((eventId: string) => {
     setCopilotEvents((prev) =>
       prev.map((ev) => (ev.id === eventId ? { ...ev, isDismissed: true } : ev))
@@ -238,6 +270,8 @@ export function useCopilotStream(
     copilotEvents,
     activeCopilotEvents,
     lastError,
+    addExternalTranscript,
+    addExternalEvent,
     dismissEvent,
     pinEvent,
     clearTranscripts,

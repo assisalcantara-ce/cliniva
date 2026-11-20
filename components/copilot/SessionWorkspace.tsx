@@ -41,6 +41,8 @@ export function SessionWorkspace({
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [insights, setInsights] = useState<InsightsPackage | null>(initialInsights);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [captureEnabled, setCaptureEnabled] = useState(false);
 
   // Connect to SSE stream and preload existing transcripts if any
   const stream = useCopilotStream(mode === "LIVE" ? sessionId : null, {
@@ -72,13 +74,38 @@ export function SessionWorkspace({
     [sessionId, patientName]
   );
 
+  const handleFinalTranscriptFromAudio = useCallback(
+    (text: string, chunkId: string) => {
+      // 1. Atualiza visualização imediatamente na UI sem esperar SSE
+      stream.addExternalTranscript({
+        id: chunkId,
+        text,
+        speaker: patientName || "Paciente",
+        timestamp: Date.now(),
+      });
+
+      // 2. Persiste no banco de dados com idempotência
+      void handlePersistFinalTranscript(text, chunkId);
+    },
+    [stream, patientName, handlePersistFinalTranscript]
+  );
+
+  const handleCopilotEventFromAudio = useCallback(
+    (event: import("@/lib/copilot/types").CopilotEvent) => {
+      // Atualiza o feed de eventos imediatamente com o card assistivo
+      stream.addExternalEvent(event);
+    },
+    [stream]
+  );
+
   // Connect to Realtime Audio Capture & WebSocket Transport
   const audio = useCopilotAudio({
     sessionId,
     therapistId: therapistId || undefined,
     patientId: patientId || undefined,
-    enabled: mode === "LIVE",
-    onFinalTranscript: handlePersistFinalTranscript,
+    enabled: captureEnabled,
+    onFinalTranscript: handleFinalTranscriptFromAudio,
+    onCopilotEvent: handleCopilotEventFromAudio,
   });
 
   const handleStartSession = useCallback(() => {
@@ -86,18 +113,36 @@ export function SessionWorkspace({
     setMode("LIVE");
   }, []);
 
-  const handleEndSession = useCallback(() => {
+  const handleEndSession = useCallback(async () => {
     audio.stop();
+    setCaptureEnabled(false);
     setMode("POST_SESSION");
-  }, [audio]);
+
+    // Persiste ended_at no banco para marcar a sessão como encerrada
+    try {
+      await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ended_at: new Date().toISOString() }),
+      });
+    } catch (err) {
+      console.error("[SessionWorkspace] Erro ao registrar encerramento:", err);
+    }
+  }, [audio, sessionId]);
 
   const handlePauseSession = useCallback(() => {
-    audio.pause();
-  }, [audio]);
+    if (captureEnabled) {
+      audio.pause();
+    }
+  }, [audio, captureEnabled]);
 
   const handleResumeSession = useCallback(() => {
     audio.resume();
   }, [audio]);
+
+  const handleStartCapture = useCallback(() => {
+    setCaptureEnabled(true);
+  }, []);
 
   const handleFinishAndLeave = useCallback(async () => {
     try {
@@ -117,18 +162,20 @@ export function SessionWorkspace({
 
   const handleGenerateFullInsights = useCallback(async () => {
     setIsGeneratingInsights(true);
+    setInsightsError(null);
     try {
       const res = await fetch(`/api/sessions/${sessionId}/insights/generate`, {
         method: "POST",
       });
-      if (res.ok) {
-        const json = (await res.json()) as { package?: InsightsPackage };
-        if (json.package) {
-          setInsights(json.package);
-        }
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.package) {
+        setInsights(json.package);
+      } else {
+        const errorMsg = json.error || "Falha ao gerar síntese clínica da sessão.";
+        setInsightsError(errorMsg);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      setInsightsError(err instanceof Error ? err.message : "Erro de conexão ao gerar síntese.");
     } finally {
       setIsGeneratingInsights(false);
     }
@@ -182,6 +229,9 @@ export function SessionWorkspace({
         transcripts={stream.transcripts}
         interimTranscript={stream.interimTranscript}
         events={stream.activeCopilotEvents}
+        captureEnabled={captureEnabled}
+        audioState={audio.state}
+        onStartCapture={handleStartCapture}
         onPause={handlePauseSession}
         onResume={handleResumeSession}
         onEndSession={handleEndSession}
@@ -198,6 +248,8 @@ export function SessionWorkspace({
     );
   }
 
+  const hasAnyTranscripts = stream.transcripts.length > 0 || (initialChunks && initialChunks.length > 0);
+
   return (
     <PostSessionView
       sessionId={sessionId}
@@ -205,6 +257,8 @@ export function SessionWorkspace({
       patientMemory={patientMemory}
       insights={insights}
       isGenerating={isGeneratingInsights}
+      error={insightsError}
+      hasTranscript={Boolean(hasAnyTranscripts)}
       onGenerateFullInsights={handleGenerateFullInsights}
       onFinishAndLeave={handleFinishAndLeave}
     />

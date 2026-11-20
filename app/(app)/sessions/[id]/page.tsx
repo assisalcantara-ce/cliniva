@@ -27,10 +27,11 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     setIsLoading(true);
     try {
       // 1. Busca metadados da sessão (patient_name, patient_id, created_at)
+      let isSessionEnded = false;
       const sessionRes = await fetch(`/api/sessions/${sessionId}`, { cache: "no-store" });
       if (sessionRes.ok) {
         const sessionJson = (await sessionRes.json()) as {
-          session?: { patient_id?: string; therapist_id?: string; created_at?: string };
+          session?: { patient_id?: string; therapist_id?: string; created_at?: string; ended_at?: string | null };
           patient_name?: string | null;
         };
         if (sessionJson.session?.patient_id) {
@@ -44,6 +45,9 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         }
         if (sessionJson.session?.created_at) {
           setLastSessionDate(sessionJson.session.created_at);
+        }
+        if (sessionJson.session?.ended_at) {
+          isSessionEnded = true;
         }
       }
 
@@ -140,10 +144,10 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       }
 
       // 4. Determina o modo inicial inteligente e confiável:
-      // A) Sessão concluída (possui insights completos persistidos) -> POST_SESSION
-      // B) Sessão interrompida/em andamento (chunks > 0, sem insights completos) -> PRE_SESSION com estado de retomada
-      // C) Sessão nova (0 chunks, 0 insights) -> PRE_SESSION com CTA normal
-      if (hasFullInsights) {
+      // A) Sessão encerrada (ended_at preenchido) ou com insights persistidos -> POST_SESSION (modo consulta)
+      // B) Sessão interrompida/em andamento (chunks > 0, sem insights completos e sem ended_at) -> PRE_SESSION com estado de retomada
+      // C) Sessão nova (0 chunks, 0 insights, sem ended_at) -> PRE_SESSION com CTA normal
+      if (hasFullInsights || isSessionEnded) {
         setInitialMode("POST_SESSION");
         setIsResuming(false);
       } else if (loadedChunks.length > 0) {

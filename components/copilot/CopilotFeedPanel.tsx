@@ -319,6 +319,14 @@ export const CopilotFeedPanel: React.FC<CopilotFeedPanelProps> = ({
                     <p className="text-xs text-slate-800 font-medium leading-relaxed mt-1 pl-2.5 border-l-2 border-purple-400">
                       &ldquo;{actionText}&rdquo;
                     </p>
+                    {item.evidence?.quote && (
+                      <p className="text-[11px] text-slate-500 italic mt-1.5 pl-2.5 border-l-2 border-slate-300">
+                        Baseado na fala: &ldquo;{item.evidence.quote}&rdquo;
+                      </p>
+                    )}
+                    <span className="inline-block text-[10px] text-slate-400 mt-1">
+                      Apoio assistivo reflexivo • Não constitui diagnóstico
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 pt-1">

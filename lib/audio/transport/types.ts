@@ -123,11 +123,36 @@ export const TransportErrorMessageSchema = z.object({
   timestamp: z.number().positive(),
 });
 
+export const CopilotEventServerMessageSchema = z.object({
+  type: z.literal("copilot_event"),
+  sessionId: z.string(),
+  therapistId: z.string(),
+  event: z.object({
+    id: z.string(),
+    type: z.string(),
+    title: z.string(),
+    description: z.string(),
+    urgency: z.enum(["low", "medium", "high"]),
+    rationale: z.string().optional(),
+    suggestedAction: z.string().optional(),
+    evidence: z
+      .object({
+        chunkId: z.string().optional(),
+        sessionId: z.string().optional(),
+        quote: z.string(),
+      })
+      .optional(),
+    createdAt: z.string(),
+  }),
+  timestamp: z.number().positive(),
+});
+
 export const ServerAudioTransportMessageSchema = z.discriminatedUnion("type", [
   SessionAckMessageSchema,
   TranscriptInterimMessageSchema,
   TranscriptFinalMessageSchema,
   TransportErrorMessageSchema,
+  CopilotEventServerMessageSchema,
 ]);
 
 export const AudioTransportMessageSchema = z.union([
@@ -152,6 +177,7 @@ export type SessionAckMessage = z.infer<typeof SessionAckMessageSchema>;
 export type TranscriptInterimMessage = z.infer<typeof TranscriptInterimMessageSchema>;
 export type TranscriptFinalMessage = z.infer<typeof TranscriptFinalMessageSchema>;
 export type TransportErrorMessage = z.infer<typeof TransportErrorMessageSchema>;
+export type CopilotEventServerMessage = z.infer<typeof CopilotEventServerMessageSchema>;
 
 /**
  * Configuração de inicialização do AudioTransport.
